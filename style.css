@@ -4475,10 +4475,14 @@ section:focus-visible,
 }
 
 .festival-promo-image {
+    background: #f6f6f6;
     display: block;
-    height: clamp(180px, 34vh, 300px);
-    object-fit: cover;
+    height: auto;
+    max-height: min(34vh, 300px);
+    max-height: min(34dvh, 300px);
+    object-fit: contain;
     object-position: center;
+    max-width: 100%;
     width: 100%;
 }
 

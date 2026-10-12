@@ -8,7 +8,7 @@ $banner2 = 'images/banner_website_02.jpg';
 $banner3 = null;
 $banner4 = null;
 $linkedinRssUrl = 'https://rss.app/feeds/dV7LODC8P6clPQvr.xml';
-$festivalPopupImage = 'images/banner_website_02.jpg';
+$festivalPopupImage = 'images/sociaal-ai-popup.jpg';
 $festivalEvent = null;
 
 function fetchHomepageLinkedInPosts(string $url, int $limit = 8): array
@@ -519,7 +519,7 @@ include __DIR__ . '/navbar.php';
 >
     <section class="festival-promo-dialog" role="dialog" aria-modal="true" aria-labelledby="festival-promo-title">
         <button type="button" class="festival-promo-close" aria-label="Pop-up sluiten">&times;</button>
-        <img class="festival-promo-image" src="<?php echo htmlspecialchars($festivalPopupImage); ?>" alt="Bezoekers tijdens een bijeenkomst van Sociaal AI Lab Rotterdam">
+        <img class="festival-promo-image" src="<?php echo htmlspecialchars($festivalPopupImage); ?>" alt="Sociaal AI Lab Rotterdam Festival op dinsdag 24 november 2026, van 14:30 tot 19:30, Hillevliet 90 in Rotterdam.">
         <div class="festival-promo-content">
             <p class="festival-promo-date">
                 📅 <?php echo htmlspecialchars(formatEventDateWithWeekdayDisplay($festivalEvent['date'])); ?>

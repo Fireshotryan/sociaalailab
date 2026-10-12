@@ -4394,6 +4394,10 @@ section:focus-visible,
     scrollbar-width: none;
 }
 
+#homepage-events.homepage-carousel {
+    align-items: flex-start;
+}
+
 .homepage-carousel::-webkit-scrollbar {
     display: none;
 }

@@ -439,4 +439,57 @@ if (!function_exists('normalizeDisplayText')) {
     }
 }
 
+if (!function_exists('formatHomepageNewsText')) {
+    function formatHomepageNewsText(string $text): string {
+        if (!class_exists(Normalizer::class) || !class_exists(IntlChar::class)) {
+            return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
+
+        $characters = preg_split('//u', $text, -1, PREG_SPLIT_NO_EMPTY);
+        if ($characters === false) {
+            return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
+
+        $html = '';
+        $inBold = false;
+        $isMathematicalBold = static function (string $character): bool {
+            $codePoint = IntlChar::ord($character);
+            return ($codePoint >= 0x1D400 && $codePoint <= 0x1D433)
+                || ($codePoint >= 0x1D468 && $codePoint <= 0x1D49B)
+                || ($codePoint >= 0x1D4D0 && $codePoint <= 0x1D503)
+                || ($codePoint >= 0x1D56C && $codePoint <= 0x1D59F)
+                || ($codePoint >= 0x1D5D4 && $codePoint <= 0x1D607)
+                || ($codePoint >= 0x1D6A8 && $codePoint <= 0x1D6E1)
+                || ($codePoint >= 0x1D71C && $codePoint <= 0x1D755)
+                || ($codePoint >= 0x1D7CE && $codePoint <= 0x1D7D7)
+                || ($codePoint >= 0x1D7EC && $codePoint <= 0x1D7F5);
+        };
+
+        foreach ($characters as $index => $character) {
+            $isBold = $isMathematicalBold($character);
+            if (!$isBold && $inBold && isset($characters[$index + 1])
+                && preg_match('/^[\s\p{P}]$/u', $character) === 1
+                && $isMathematicalBold($characters[$index + 1])) {
+                $isBold = true;
+            }
+
+            if ($isBold !== $inBold) {
+                $html .= $isBold ? '<strong>' : '</strong>';
+                $inBold = $isBold;
+            }
+
+            $displayCharacter = $isMathematicalBold($character)
+                ? (Normalizer::normalize($character, Normalizer::FORM_KC) ?: $character)
+                : $character;
+            $html .= htmlspecialchars($displayCharacter, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
+
+        if ($inBold) {
+            $html .= '</strong>';
+        }
+
+        return $html;
+    }
+}
+
 ?>

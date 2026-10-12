@@ -466,7 +466,7 @@ include __DIR__ . '/navbar.php';
                 <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="LinkedIn bericht" class="homepage-news-card-img" loading="lazy">
             <?php endif; ?>
             <div class="homepage-news-card-content">
-                <h3 class="homepage-news-card-title"><?php echo htmlspecialchars($post['title'] ?: 'SociaalAI Lab Update'); ?></h3>
+                <h3 class="homepage-news-card-title"><?php echo formatHomepageNewsText($post['title'] ?: 'SociaalAI Lab Update'); ?></h3>
                 <?php if (!empty($post['date'])): ?>
                     <div class="homepage-news-card-meta"><i class="fa-regular fa-calendar mr-1"></i><?php echo htmlspecialchars($post['date']); ?></div>
                 <?php endif; ?>
@@ -474,7 +474,7 @@ include __DIR__ . '/navbar.php';
                     <?php
                     $postText = (string)($post['text'] ?? '');
                     $trimmedText = editorPreviewText($postText, 180);
-                    echo nl2br(htmlspecialchars($trimmedText));
+                    echo nl2br(formatHomepageNewsText($trimmedText));
                     ?>
                 </p>
                 <a href="<?php echo htmlspecialchars($post['url']); ?>" target="_blank" rel="noopener" class="homepage-news-card-link">

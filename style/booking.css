@@ -162,6 +162,30 @@ body {
     color: #333;
 }
 
+.booking-delete-form {
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.booking-delete-btn {
+    min-height: 44px;
+    padding: 0.65rem 1rem;
+    border: 1px solid #b42318;
+    border-radius: 8px;
+    background: #fff;
+    color: #b42318;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.booking-delete-btn:hover,
+.booking-delete-btn:focus-visible {
+    background: #fff3f3;
+    outline: 2px solid #b42318;
+    outline-offset: 2px;
+}
+
 .booking strong {
     color: #00811F;
     font-weight: 700;
@@ -303,6 +327,12 @@ input::placeholder {
     background: #fff3f3;
     border: 2px solid #ffcccc;
     color: #cc3333;
+}
+
+.success-message {
+    background: #effaf1;
+    border: 2px solid #b7e4c0;
+    color: #176b2c;
 }
 
 .error-message i {
@@ -466,6 +496,15 @@ input::placeholder {
 
     .booking {
         padding: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .booking-delete-form {
+        flex: 1 0 100%;
+    }
+
+    .booking-delete-btn {
+        width: 100%;
     }
 
     .booking .bar {

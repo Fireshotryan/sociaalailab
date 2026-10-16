@@ -28,8 +28,11 @@ assertRoleSame(false, in_array('create_users', $researcherPermissions, true), 'R
 assertRoleSame(false, in_array('edit_users', $researcherPermissions, true), 'Researcher cannot edit users');
 assertRoleSame(false, in_array('delete_users', $researcherPermissions, true), 'Researcher cannot delete users');
 assertRoleSame(false, in_array('approve_content', $researcherPermissions, true), 'Researcher cannot approve content');
+assertRoleSame(false, in_array('delete_bookings', $researcherPermissions, true), 'Researcher cannot delete bookings');
 assertRoleSame(true, in_array('create_users', sitePermissionsForRole('administrator'), true), 'Administrator retains account-management rights');
+assertRoleSame(true, in_array('delete_bookings', sitePermissionsForRole('administrator'), true), 'Administrator can delete bookings');
 assertRoleSame(true, in_array('approve_content', sitePermissionsForRole('content_manager'), true), 'Content manager retains approval rights');
+assertRoleSame(false, in_array('delete_bookings', sitePermissionsForRole('content_manager'), true), 'Content manager does not gain booking deletion');
 assertRoleSame([], sitePermissionsForRole('viewer'), 'Viewer has no permissions');
 
 echo "OK ({$assertions} assertions)\n";

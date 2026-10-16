@@ -21,6 +21,11 @@ if (!in_array('access_booking', $sessionPermissions, true)) {
     header('Location: admin.php');
     exit;
 }
+$canDeleteBookings = in_array('delete_bookings', $sessionPermissions, true);
+if (!isset($_SESSION['booking_csrf_token']) || !is_string($_SESSION['booking_csrf_token'])) {
+    $_SESSION['booking_csrf_token'] = bin2hex(random_bytes(32));
+}
+$bookingCsrfToken = $_SESSION['booking_csrf_token'];
 
 // Staff color palette (auto-assigned to each unique staff member)
 $staffColorPalette = [
@@ -141,6 +146,85 @@ $message = "";
 if (!empty($_SESSION['booking_message'])) {
     $message = $_SESSION['booking_message'];
     unset($_SESSION['booking_message']);
+}
+$messageType = $_SESSION['booking_message_type'] ?? 'error';
+unset($_SESSION['booking_message_type']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_booking_id'])) {
+    if (!$canDeleteBookings) {
+        $_SESSION['booking_message'] = 'Je hebt geen rechten om boekingen te verwijderen.';
+        $_SESSION['booking_message_type'] = 'error';
+    } elseif (!isset($_POST['booking_csrf_token']) || !is_string($_POST['booking_csrf_token'])
+        || !hash_equals($bookingCsrfToken, $_POST['booking_csrf_token'])) {
+        $_SESSION['booking_message'] = 'De aanvraag kon niet worden geverifieerd. Vernieuw de pagina en probeer opnieuw.';
+        $_SESSION['booking_message_type'] = 'error';
+    } else {
+        $rawBookingId = $_POST['delete_booking_id'];
+        $bookingId = is_string($rawBookingId) && preg_match('/^[1-9][0-9]*$/D', $rawBookingId)
+            ? filter_var($rawBookingId, FILTER_VALIDATE_INT)
+            : false;
+
+        if ($bookingId === false || $bookingId < 1) {
+            $_SESSION['booking_message'] = 'Ongeldige boeking geselecteerd.';
+            $_SESSION['booking_message_type'] = 'error';
+        } else {
+            $lockAcquired = false;
+            $transactionStarted = false;
+            try {
+                $engineStatement = $pdo->query("SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings'");
+                if (strtoupper((string)$engineStatement->fetchColumn()) !== 'INNODB') {
+                    throw new RuntimeException('De boekingstabel ondersteunt geen veilige transacties.');
+                }
+
+                $lockStatement = $pdo->prepare('SELECT GET_LOCK(?, 10)');
+                $lockStatement->execute(['sociaalailab_booking_hardware_inventory']);
+                $lockAcquired = (int)$lockStatement->fetchColumn() === 1;
+                if (!$lockAcquired) {
+                    throw new RuntimeException('De voorraad is tijdelijk in gebruik.');
+                }
+
+                $pdo->beginTransaction();
+                $transactionStarted = true;
+                $bookingStatement = $pdo->prepare('SELECT id FROM bookings WHERE id = ? FOR UPDATE');
+                $bookingStatement->execute([$bookingId]);
+                if (!$bookingStatement->fetchColumn()) {
+                    $pdo->rollBack();
+                    $transactionStarted = false;
+                    $_SESSION['booking_message'] = 'Deze boeking bestaat niet meer of is al verwijderd.';
+                    $_SESSION['booking_message_type'] = 'error';
+                } else {
+                    $deleteStatement = $pdo->prepare('DELETE FROM bookings WHERE id = ?');
+                    $deleteStatement->execute([$bookingId]);
+                    if ($deleteStatement->rowCount() !== 1) {
+                        throw new RuntimeException('De boeking kon niet worden verwijderd.');
+                    }
+                    $pdo->commit();
+                    $transactionStarted = false;
+                    $_SESSION['booking_message'] = 'De boeking is verwijderd.';
+                    $_SESSION['booking_message_type'] = 'success';
+                }
+            } catch (Throwable $exception) {
+                if ($transactionStarted && $pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                error_log('Booking deletion failed: ' . $exception->getMessage());
+                $_SESSION['booking_message'] = 'De boeking kon niet veilig worden verwijderd. Probeer het opnieuw.';
+                $_SESSION['booking_message_type'] = 'error';
+            } finally {
+                if ($lockAcquired) {
+                    try {
+                        $releaseStatement = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+                        $releaseStatement->execute(['sociaalailab_booking_hardware_inventory']);
+                    } catch (Throwable $exception) {
+                        error_log('Could not release booking inventory lock: ' . $exception->getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    header("Location: booking.php?view=$view&date=$selectedDate&selected_day=$selectedDay");
+    exit;
 }
 
 /* STAFF ASSIGNMENT HANDLING - CHECK FIRST */
@@ -606,6 +690,13 @@ $daysWithStaff = array_keys($staffByDate);
                             <?php endif; ?>
                         </span>
                     </div>
+                    <?php if ($canDeleteBookings): ?>
+                        <form method="POST" class="booking-delete-form" onsubmit="return confirm('Weet je zeker dat je deze boeking wilt verwijderen?');">
+                            <input type="hidden" name="delete_booking_id" value="<?= (int)$b['id'] ?>">
+                            <input type="hidden" name="booking_csrf_token" value="<?= htmlspecialchars($bookingCsrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+                            <button type="submit" class="booking-delete-btn">Verwijderen</button>
+                        </form>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
@@ -808,7 +899,7 @@ $daysWithStaff = array_keys($staffByDate);
         <h2>Nieuwe booking</h2>
 
         <?php if ($message): ?>
-            <div class="message error-message">
+            <div class="message <?= $messageType === 'success' ? 'success-message' : 'error-message' ?>">
                 <i class="fa fa-exclamation-circle"></i> <?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
             </div>
         <?php endif; ?>

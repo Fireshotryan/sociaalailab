@@ -133,14 +133,27 @@ function getBookingHardwareAvailabilityError($requestedHardware, $existingBookin
     $inventory = [];
     foreach ($hardware as $hardwareItem) {
         $id = bookingParsePositiveInteger($hardwareItem['id'] ?? null, 'Inventaris-ID');
-        $inventory[$id] = $hardwareItem + ['id' => $id];
+        $quantity = bookingParsePositiveInteger($hardwareItem['quantity'] ?? null, 'Inventarisvoorraad');
+        $inventory[$id] = $hardwareItem + ['id' => $id, 'quantity' => $quantity];
     }
 
-    $requestedIds = [];
-    $reserved = [];
+    $requested = [];
     foreach ($requestedHardware as $item) {
-        $requestedIds[$item['id']] = true;
-        $reserved[$item['id']] = 0;
+        $id = bookingParsePositiveInteger($item['id'] ?? null, 'Hardware-ID');
+        $quantity = bookingParsePositiveInteger($item['quantity'] ?? null, 'Hardwarehoeveelheid');
+        if (!isset($inventory[$id])) {
+            throw new InvalidArgumentException('Een aangevraagd hardware-item bestaat niet in de inventaris.');
+        }
+        if (isset($requested[$id])) {
+            throw new InvalidArgumentException('Een hardware-item mag maar één keer in de aanvraag voorkomen.');
+        }
+        $requested[$id] = ['quantity' => $quantity, 'events' => []];
+    }
+
+    $periodStart = bookingTimeToSeconds($startTime);
+    $periodEnd = bookingTimeToSeconds($endTime);
+    if ($periodEnd <= $periodStart) {
+        throw new InvalidArgumentException('De eindtijd moet na de begintijd liggen.');
     }
 
     foreach ($existingBookings as $booking) {
@@ -168,6 +181,8 @@ function getBookingHardwareAvailabilityError($requestedHardware, $existingBookin
             throw new RuntimeException('Een bestaande boeking bevat ongeldige hardwaregegevens.');
         }
 
+        $bookingStart = max($periodStart, bookingTimeToSeconds($booking['start_time']));
+        $bookingEnd = min($periodEnd, bookingTimeToSeconds($booking['end_time']));
         foreach ($storedItems as $storedItem) {
             if (!$storedItem instanceof stdClass || !property_exists($storedItem, 'id') || !property_exists($storedItem, 'quantity')) {
                 throw new RuntimeException('Een bestaande boeking bevat ongeldige hardwaregegevens.');
@@ -180,20 +195,36 @@ function getBookingHardwareAvailabilityError($requestedHardware, $existingBookin
                 throw new RuntimeException('Een bestaande boeking bevat ongeldige hardwaregegevens.');
             }
 
-            if (isset($requestedIds[$id])) {
-                if ($reserved[$id] > PHP_INT_MAX - $quantity) {
-                    $reserved[$id] = PHP_INT_MAX;
-                } else {
-                    $reserved[$id] += $quantity;
-                }
+            if (isset($requested[$id])) {
+                $requested[$id]['events'][] = ['time' => $bookingStart, 'delta' => $quantity];
+                $requested[$id]['events'][] = ['time' => $bookingEnd, 'delta' => -$quantity];
             }
         }
     }
 
-    foreach ($requestedHardware as $item) {
-        $id = $item['id'];
-        $available = max(0, $inventory[$id]['quantity'] - $reserved[$id]);
-        if ($item['quantity'] > $available) {
+    foreach ($requested as $id => $request) {
+        $events = $request['events'];
+        $events[] = ['time' => $periodStart, 'delta' => $request['quantity']];
+        $events[] = ['time' => $periodEnd, 'delta' => -$request['quantity']];
+
+        usort($events, function ($a, $b) {
+            if ($a['time'] !== $b['time']) {
+                return $a['time'] <=> $b['time'];
+            }
+
+            return $a['delta'] <=> $b['delta'];
+        });
+
+        $reserved = 0;
+        $maximumReserved = 0;
+        foreach ($events as $event) {
+            $reserved += $event['delta'];
+            $maximumReserved = max($maximumReserved, $reserved);
+        }
+
+        if ($maximumReserved > $inventory[$id]['quantity']) {
+            $existingPeak = max(0, $maximumReserved - $request['quantity']);
+            $available = max(0, $inventory[$id]['quantity'] - $existingPeak);
             return 'Onvoldoende voorraad voor ' . $inventory[$id]['name'] . ': nog ' . $available . ' beschikbaar voor deze periode.';
         }
     }

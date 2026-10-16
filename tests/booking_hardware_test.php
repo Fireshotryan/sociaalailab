@@ -123,4 +123,47 @@ assertSameValue(
     'Reservations from all locations are summed'
 );
 
+$sweepInventory = [
+    ['id' => 9, 'name' => 'Testkit', 'quantity' => 4],
+];
+$boundaryBookings = [
+    ['booking_date' => '2026-10-20', 'start_time' => '10:00:00', 'end_time' => '11:00:00', 'location_id' => 1, 'hardware_ids' => '[{"id":9,"quantity":1}]'],
+    ['booking_date' => '2026-10-20', 'start_time' => '11:00:00', 'end_time' => '12:00:00', 'location_id' => 2, 'hardware_ids' => '[{"id":9,"quantity":2}]'],
+];
+assertSameValue(
+    null,
+    getBookingHardwareAvailabilityError([['id' => 9, 'quantity' => 2]], $boundaryBookings, '2026-10-20', '10:00:00', '12:00:00', $sweepInventory),
+    'End events are processed before same-time starts and the peak fits stock'
+);
+assertSameValue(
+    false,
+    getBookingHardwareAvailabilityError([['id' => 9, 'quantity' => 3]], $boundaryBookings, '2026-10-20', '10:00:00', '12:00:00', $sweepInventory) === null,
+    'Different reservation quantities at adjacent boundaries include the new request'
+);
+
+$overlappingQuantityBookings = [
+    ['booking_date' => '2026-10-20', 'start_time' => '10:00:00', 'end_time' => '12:00:00', 'location_id' => 1, 'hardware_ids' => '[{"id":9,"quantity":1}]'],
+    ['booking_date' => '2026-10-20', 'start_time' => '10:00:00', 'end_time' => '11:30:00', 'location_id' => 2, 'hardware_ids' => '[{"id":9,"quantity":2}]'],
+    ['booking_date' => '2026-10-20', 'start_time' => '10:30:00', 'end_time' => '11:00:00', 'location_id' => 999, 'hardware_ids' => '[{"id":9,"quantity":1}]'],
+];
+assertSameValue(
+    false,
+    getBookingHardwareAvailabilityError([['id' => 9, 'quantity' => 1]], $overlappingQuantityBookings, '2026-10-20', '10:15:00', '11:15:00', $sweepInventory) === null,
+    'Peak overlapping quantities exceed inventory even when intervals share start/end times'
+);
+$identicalIntervals = [
+    ['booking_date' => '2026-10-20', 'start_time' => '10:00:00', 'end_time' => '11:00:00', 'location_id' => 1, 'hardware_ids' => '[{"id":9,"quantity":1}]'],
+    ['booking_date' => '2026-10-20', 'start_time' => '10:00:00', 'end_time' => '11:00:00', 'location_id' => 2, 'hardware_ids' => '[{"id":9,"quantity":2}]'],
+];
+assertSameValue(
+    null,
+    getBookingHardwareAvailabilityError([['id' => 9, 'quantity' => 1]], $identicalIntervals, '2026-10-20', '10:00:00', '11:00:00', $sweepInventory),
+    'Multiple reservations with identical start and end times sum concurrently'
+);
+assertSameValue(
+    null,
+    getBookingHardwareAvailabilityError([['id' => 9, 'quantity' => 1]], $overlappingQuantityBookings, '2026-10-20', '11:30:00', '12:00:00', $sweepInventory),
+    'Equipment is available after the last overlapping reservation ends'
+);
+
 echo "OK ({$assertions} assertions)\n";

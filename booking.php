@@ -2,6 +2,7 @@
 session_start();
 require 'db.php';
 require 'helpers.php';
+require 'booking_hardware.php';
 
 if (!($_SESSION['can_access_admin'] ?? false)) {
     header('Location: login.php');
@@ -186,131 +187,203 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['staff_dates'])) {
 
 /* BOOKING INSERT - support multiple locations selection */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_date'])) {
-     $bookingDate = $_POST['booking_date'] ?? null;
-     $bookingStartTime = $_POST['start_time'] ?? null;
-     $bookingEndTime = $_POST['end_time'] ?? null;
-     $bookingTitle = $_POST['booking_title'] ?? null;
-     $locationIds = $_POST['location_ids'] ?? [];
-     $tablesJson = $_POST['tables_json'] ?? '[]';
-     // allow single location submitted as scalar for backwards compatibility
-     if (!is_array($locationIds) && !empty($locationIds)) {
-         $locationIds = [$locationIds];
-     }
+    $bookingDate = $_POST['booking_date'] ?? null;
+    $bookingStartTime = $_POST['start_time'] ?? null;
+    $bookingEndTime = $_POST['end_time'] ?? null;
+    $bookingTitle = $_POST['booking_title'] ?? null;
+    $locationIds = $_POST['location_ids'] ?? [];
+    $tablesJson = $_POST['tables_json'] ?? '[]';
+    $eventResponsibility = (isset($_POST['event_responsibility']) && ($_POST['event_responsibility'] === '1' || $_POST['event_responsibility'] === 'on')) ? 1 : 0;
 
-     // Server-side validation: event responsibility must be accepted
-     $eventResponsibility = (isset($_POST['event_responsibility']) && ($_POST['event_responsibility'] === '1' || $_POST['event_responsibility'] === 'on')) ? 1 : 0;
-     if (!$eventResponsibility) {
-         $_SESSION['booking_message'] = 'You must accept responsibility for the event before submitting your booking.';
-         header("Location: booking.php?view=$view&date=$selectedDate");
-         exit;
-     }
+    if (!$eventResponsibility) {
+        $_SESSION['booking_message'] = 'You must accept responsibility for the event before submitting your booking.';
+        header("Location: booking.php?view=$view&date=$selectedDate");
+        exit;
+    }
 
-     // Detect whether DB has event_responsibility column
-     $hasEventResponsibilityColumn = false;
-     try {
-         $hasEventResponsibilityColumn = (bool)$pdo->query("SHOW COLUMNS FROM bookings LIKE 'event_responsibility'")->fetch();
-     } catch (Exception $e) {
-         $hasEventResponsibilityColumn = false;
-     }
+    try {
+        $bookingDateObject = is_string($bookingDate) ? DateTimeImmutable::createFromFormat('!Y-m-d', $bookingDate) : false;
+        if (!$bookingDateObject || $bookingDateObject->format('Y-m-d') !== $bookingDate) {
+            throw new InvalidArgumentException('Kies een geldige boekingsdatum.');
+        }
+        if (!is_string($bookingStartTime) || !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $bookingStartTime)
+            || !is_string($bookingEndTime) || !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $bookingEndTime)) {
+            throw new InvalidArgumentException('Vul een geldige begin- en eindtijd in.');
+        }
+        $bookingStartTime .= ':00';
+        $bookingEndTime .= ':00';
+        if (bookingTimeToSeconds($bookingEndTime) <= bookingTimeToSeconds($bookingStartTime)) {
+            throw new InvalidArgumentException('De eindtijd moet na de begintijd liggen.');
+        }
 
-     if (!empty($bookingDate) && !empty($bookingStartTime) && !empty($bookingEndTime) && !empty($locationIds)) {
-         $hardwareJson = json_encode($_POST['hardware'] ?? []);
-         $inserted = [];
-         $skipped = [];
+        $requestedHardware = validateBookingHardwareJson($_POST['hardware_json'] ?? null, $hardware);
+        $hardwareJson = json_encode($requestedHardware, JSON_THROW_ON_ERROR);
 
-         foreach ($locationIds as $locId) {
-             $locId = intval($locId);
-             if ($locId === 0) continue;
+        if (!is_array($locationIds)) {
+            $locationIds = [$locationIds];
+        }
+        $knownLocationIds = array_column($locations, 'id');
+        $validatedLocationIds = [];
+        foreach ($locationIds as $locationId) {
+            $locationId = bookingParsePositiveInteger($locationId, 'Locatie-ID');
+            if (!in_array($locationId, $knownLocationIds, true)) {
+                throw new InvalidArgumentException('Een geselecteerde locatie is ongeldig.');
+            }
+            if (!in_array($locationId, $validatedLocationIds, true)) {
+                $validatedLocationIds[] = $locationId;
+            }
+        }
+        if (!$validatedLocationIds) {
+            throw new InvalidArgumentException('Selecteer ten minste één locatie.');
+        }
+    } catch (InvalidArgumentException $exception) {
+        $_SESSION['booking_message'] = $exception->getMessage();
+        header("Location: booking.php?view=$view&date=$selectedDate");
+        exit;
+    }
 
-             $locationDescription = $locId == 999 ? ($_POST['location_description'] ?? '') : null;
+    $hasEventResponsibilityColumn = false;
+    try {
+        $hasEventResponsibilityColumn = (bool)$pdo->query("SHOW COLUMNS FROM bookings LIKE 'event_responsibility'")->fetch();
+    } catch (Exception $exception) {
+        $hasEventResponsibilityColumn = false;
+    }
 
-             // Check for conflicting bookings for this location
-             $conflict = false;
-             foreach ($bookings as $b) {
-                 if ($b['booking_date'] === $bookingDate && $b['location_id'] == $locId) {
-                     // Externe bookings (999) conflicteren niet met elkaar
-                     if ($locId == 999) continue;
+    $inserted = [];
+    $skipped = [];
+    $lockAcquired = false;
+    $transactionStarted = false;
+    $failureMessage = null;
 
-                     $bStart = (int)substr($b['start_time'], 0, 2);
-                     $bEnd = (int)substr($b['end_time'], 0, 2);
-                     $newStart = (int)substr($bookingStartTime, 0, 2);
-                     $newEnd = (int)substr($bookingEndTime, 0, 2);
+    try {
+        $engineStatement = $pdo->query("SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings'");
+        if (strtoupper((string)$engineStatement->fetchColumn()) !== 'INNODB') {
+            throw new RuntimeException('De boekingstabel ondersteunt geen veilige transacties.');
+        }
 
-                     if ($newStart < $bEnd && $newEnd > $bStart) {
-                         $conflict = true;
-                         break;
-                     }
-                 }
-             }
+        $lockStatement = $pdo->prepare('SELECT GET_LOCK(?, 10)');
+        $lockStatement->execute(['sociaalailab_booking_hardware_inventory']);
+        $lockAcquired = (int)$lockStatement->fetchColumn() === 1;
+        if (!$lockAcquired) {
+            throw new RuntimeException('De voorraad is tijdelijk in gebruik.');
+        }
 
-             if ($conflict) {
-                 $skipped[] = $locId;
-                 continue;
-             }
+        $pdo->beginTransaction();
+        $transactionStarted = true;
+        $stmt = $pdo->prepare('SELECT id, location_id, booking_date, start_time, end_time, hardware_ids FROM bookings WHERE booking_date = ? FOR UPDATE');
+        $stmt->execute([$bookingDate]);
+        $bookingsForDate = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-             $hardwareJson = $_POST['hardware_json'] ?? '[]';
-             // Only use tafels_json if this is location_id 1 (Sociaal AI Lab Hillevliet)
-             $tablesForBooking = ($locId == 1) ? $tablesJson : '[]';
+        foreach ($validatedLocationIds as $locId) {
+            $conflict = false;
+            if ($locId !== 999) {
+                foreach ($bookingsForDate as $booking) {
+                    if ((int)$booking['location_id'] === $locId && bookingIntervalsOverlap(
+                        $booking['booking_date'],
+                        $booking['start_time'],
+                        $booking['end_time'],
+                        $bookingDate,
+                        $bookingStartTime,
+                        $bookingEndTime
+                    )) {
+                        $conflict = true;
+                        break;
+                    }
+                }
+            }
 
-             if ($hasEventResponsibilityColumn) {
-                 $stmt = $pdo->prepare("INSERT INTO bookings (title, location_id, location_description, booking_date, start_time, end_time, hardware_ids, tables_ids, event_responsibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                 $stmt->execute([
-                     $bookingTitle,
-                     $locId,
-                     $locationDescription,
-                     $bookingDate,
-                     $bookingStartTime,
-                     $bookingEndTime,
-                     $hardwareJson,
-                     $tablesForBooking,
-                     $eventResponsibility
-                 ]);
-             } else {
-                 // Fallback if column doesn't exist
-                 $stmt = $pdo->prepare("INSERT INTO bookings (title, location_id, location_description, booking_date, start_time, end_time, hardware_ids, tables_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                 $stmt->execute([
-                     $bookingTitle,
-                     $locId,
-                     $locationDescription,
-                     $bookingDate,
-                     $bookingStartTime,
-                     $bookingEndTime,
-                     $hardwareJson,
-                     $tablesForBooking
-                 ]);
-                 // Note: responsibility flag not saved because DB lacks column
-             }
+            if ($conflict) {
+                $skipped[] = $locId;
+                continue;
+            }
 
-             $inserted[] = $locId;
-         }
+            $availabilityError = getBookingHardwareAvailabilityError(
+                $requestedHardware,
+                $bookingsForDate,
+                $bookingDate,
+                $bookingStartTime,
+                $bookingEndTime,
+                $hardware
+            );
+            if ($availabilityError !== null) {
+                throw new DomainException($availabilityError);
+            }
 
-         // prepare a user-friendly message and store in session so it survives the redirect
-         $msgParts = [];
-         if (!empty($inserted)) {
-             $names = [];
-             foreach ($inserted as $id) {
-                 $loc = findById($locations, $id);
-                 $names[] = $loc ? $loc['name'] : "#{$id}";
-             }
-             $msgParts[] = "Geboekt: " . implode(', ', $names);
-         }
-         if (!empty($skipped)) {
-             $names = [];
-             foreach ($skipped as $id) {
-                 $loc = findById($locations, $id);
-                 $names[] = $loc ? $loc['name'] : "#{$id}";
-             }
-             $msgParts[] = "Kon niet boeken (conflict): " . implode(', ', $names);
-         }
+            $locationDescription = $locId === 999 ? ($_POST['location_description'] ?? '') : null;
+            $tablesForBooking = ($locId === 1) ? $tablesJson : '[]';
 
-         if (!empty($msgParts)) {
-             $_SESSION['booking_message'] = implode(' | ', $msgParts);
-         }
+            if ($hasEventResponsibilityColumn) {
+                $stmt = $pdo->prepare('INSERT INTO bookings (title, location_id, location_description, booking_date, start_time, end_time, hardware_ids, tables_ids, event_responsibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                $stmt->execute([$bookingTitle, $locId, $locationDescription, $bookingDate, $bookingStartTime, $bookingEndTime, $hardwareJson, $tablesForBooking, $eventResponsibility]);
+            } else {
+                $stmt = $pdo->prepare('INSERT INTO bookings (title, location_id, location_description, booking_date, start_time, end_time, hardware_ids, tables_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+                $stmt->execute([$bookingTitle, $locId, $locationDescription, $bookingDate, $bookingStartTime, $bookingEndTime, $hardwareJson, $tablesForBooking]);
+            }
 
-         header("Location: booking.php?view=$view&date=$selectedDate");
-         exit;
-     }
- }
+            $inserted[] = $locId;
+            $bookingsForDate[] = [
+                'location_id' => $locId,
+                'booking_date' => $bookingDate,
+                'start_time' => $bookingStartTime,
+                'end_time' => $bookingEndTime,
+                'hardware_ids' => $hardwareJson,
+            ];
+        }
+
+        $pdo->commit();
+        $transactionStarted = false;
+    } catch (DomainException $exception) {
+        if ($transactionStarted && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $transactionStarted = false;
+        $failureMessage = $exception->getMessage();
+    } catch (Throwable $exception) {
+        if ($transactionStarted && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $transactionStarted = false;
+        error_log('Booking transaction failed: ' . $exception->getMessage());
+        $failureMessage = 'De boeking kon niet veilig worden opgeslagen. Probeer het opnieuw.';
+    } finally {
+        if ($lockAcquired) {
+            try {
+                $releaseStatement = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+                $releaseStatement->execute(['sociaalailab_booking_hardware_inventory']);
+            } catch (Throwable $exception) {
+                error_log('Could not release booking inventory lock: ' . $exception->getMessage());
+            }
+        }
+    }
+
+    if ($failureMessage !== null) {
+        $_SESSION['booking_message'] = $failureMessage;
+    } else {
+        $msgParts = [];
+        if ($inserted) {
+            $names = [];
+            foreach ($inserted as $id) {
+                $loc = findById($locations, $id);
+                $names[] = $loc ? $loc['name'] : "#{$id}";
+            }
+            $msgParts[] = 'Geboekt: ' . implode(', ', $names);
+        }
+        if ($skipped) {
+            $names = [];
+            foreach ($skipped as $id) {
+                $loc = findById($locations, $id);
+                $names[] = $loc ? $loc['name'] : "#{$id}";
+            }
+            $msgParts[] = 'Kon niet boeken (conflict): ' . implode(', ', $names);
+        }
+        if ($msgParts) {
+            $_SESSION['booking_message'] = implode(' | ', $msgParts);
+        }
+    }
+
+    header("Location: booking.php?view=$view&date=$selectedDate");
+    exit;
+}
 
 /* LOAD ALL STAFF ASSIGNMENTS FOR DISPLAY */
 $stmt = $pdo->prepare("SELECT DISTINCT staff_name, color, COUNT(DISTINCT staff_date) as num_dates FROM location_staff WHERE location_id = 1 GROUP BY staff_name, color ORDER BY staff_name");
@@ -743,7 +816,7 @@ $daysWithStaff = array_keys($staffByDate);
 
         <?php if ($message): ?>
             <div class="message error-message">
-                <i class="fa fa-exclamation-circle"></i> <?= $message ?>
+                <i class="fa fa-exclamation-circle"></i> <?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
             </div>
         <?php endif; ?>
 
@@ -826,7 +899,7 @@ $daysWithStaff = array_keys($staffByDate);
                             <option value="<?= $h['id'] ?>" data-max="<?= $h['quantity'] ?>"><?= htmlspecialchars($h['name']) ?> (max: <?= $h['quantity'] ?>)</option>
                         <?php endforeach; ?>
                     </select>
-                    <input type="number" id="hardware_qty" min="1" value="1" style="width: 80px;">
+                    <input type="number" id="hardware_qty" min="1" step="1" value="1" style="width: 80px;">
                     <button type="button" class="btn" onclick="addHardware()" style="width: auto; padding: 0.85rem 1.5rem;">Voeg toe</button>
                 </div>
                 
@@ -1040,10 +1113,23 @@ function addHardware() {
     const select = document.getElementById('hardware_select');
     const qtyInput = document.getElementById('hardware_qty');
     const hardwareId = select.value;
-    const qty = parseInt(qtyInput.value) || 1;
+    const quantityValue = qtyInput.value;
     
     if (!hardwareId) {
         alert('Kies eerst een hardware item');
+        return;
+    }
+
+    if (!/^[1-9][0-9]*$/.test(quantityValue)) {
+        alert('Voer een positief geheel aantal in.');
+        qtyInput.focus();
+        return;
+    }
+
+    const qty = Number(quantityValue);
+    if (!Number.isSafeInteger(qty)) {
+        alert('De ingevoerde hoeveelheid is te groot.');
+        qtyInput.focus();
         return;
     }
     

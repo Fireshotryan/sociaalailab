@@ -2,43 +2,19 @@
 session_start();
 require 'db.php';
 require 'helpers.php';
+require_once 'role_permissions.php';
 
-// Security check: redirect to login if not logged in
-if (!($_SESSION['can_access_admin'] ?? false)) {
+$rolePermissions = siteRolePermissions();
+$sessionRole = siteNormalizeAccountRole($_SESSION['role'] ?? '', 0);
+$sessionPermissions = sitePermissionsForRole($sessionRole);
+$_SESSION['role'] = $sessionRole;
+$_SESSION['admin'] = $sessionRole === 'administrator' ? 1 : 0;
+$_SESSION['permissions'] = json_encode($sessionPermissions, JSON_UNESCAPED_SLASHES);
+$_SESSION['can_access_admin'] = !empty($sessionPermissions);
+
+if (!$_SESSION['can_access_admin']) {
     header('Location: login.php');
     exit;
-}
-
-$rolePermissions = [
-    'administrator' => ['create_users', 'edit_users', 'delete_users', 'manage_banners', 'manage_events', 'manage_pages', 'delete_events', 'delete_pages', 'optimize_images', 'approve_content', 'access_booking', 'view_audit'],
-    'content_manager' => ['manage_banners', 'manage_events', 'manage_pages', 'delete_events', 'delete_pages', 'optimize_images', 'approve_content', 'access_booking'],
-    'onderzoeker' => ['access_booking', 'create_events', 'view_feedback', 'view_pages'],
-    'viewer' => [],
-];
-
-function normalizeAccountPermissions($value)
-{
-    if (!is_string($value) || trim($value) === '') {
-        return null;
-    }
-
-    $decoded = json_decode($value, true);
-    if (!is_array($decoded)) {
-        return null;
-    }
-
-    return array_values(array_unique(array_filter(array_map('strval', $decoded))));
-}
-
-function permissionsForRole($role, $rolePermissions)
-{
-    return $rolePermissions[$role] ?? [];
-}
-
-$sessionRole = trim((string)($_SESSION['role'] ?? ''));
-if ($sessionRole === '') {
-    $sessionRole = (isset($_SESSION['admin']) && (int)$_SESSION['admin'] === 1) ? 'administrator' : 'viewer';
-    $_SESSION['role'] = $sessionRole;
 }
 
 // Simple permission helpers (fallback if missing earlier)
@@ -963,17 +939,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newPassword = (string)($_POST['new_password'] ?? '');
         $newFirstName = trim((string)($_POST['new_first_name'] ?? ''));
         $newLastName = trim((string)($_POST['new_last_name'] ?? ''));
-        $newRole = trim((string)($_POST['new_role'] ?? 'viewer'));
-        $allowedRoles = ['administrator', 'content_manager', 'editor', 'viewer'];
+        $newRole = siteNormalizeSubmittedRole($_POST['new_role'] ?? 'viewer');
 
-        // Auto-set permissions based on role
-        $newPermissions = permissionsForRole($newRole, $rolePermissions);
+        $newPermissions = $newRole === null ? [] : sitePermissionsForRole($newRole);
 
         if ($newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
             $message = 'Vul een geldig e-mailadres in.';
         } elseif ($newPassword === '') {
             $message = 'Wachtwoord is verplicht.';
-        } elseif (!in_array($newRole, $allowedRoles, true)) {
+        } elseif ($newRole === null) {
             $message = 'Ongeldige rol gekozen.';
         } else {
             $existsStmt = $pdo->prepare('SELECT id FROM accounts WHERE email = ?');
@@ -982,7 +956,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'Er bestaat al een gebruiker met dit e-mailadres.';
             } else {
                 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                $adminFlag = !empty($newPermissions) ? 1 : 0;
+                $adminFlag = $newRole === 'administrator' ? 1 : 0;
                 $permissionsJson = json_encode($newPermissions, JSON_UNESCAPED_SLASHES);
                 $insertStmt = $pdo->prepare('INSERT INTO accounts (email, wachtwoord, first_name, last_name, admin, role, permissions) VALUES (?, ?, ?, ?, ?, ?, ?)');
                 $insertStmt->execute([
@@ -1001,25 +975,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'update_user_permissions') {
         $targetEmail = trim((string)($_POST['target_email'] ?? ''));
-        $newRole = trim((string)($_POST['role'] ?? 'viewer'));
-        $allowedRoles = ['administrator', 'content_manager', 'editor', 'viewer'];
+        $newRole = siteNormalizeSubmittedRole($_POST['role'] ?? 'viewer');
 
-        // Auto-set permissions based on role only
-        $newPermissions = permissionsForRole($newRole, $rolePermissions);
+        $newPermissions = $newRole === null ? [] : sitePermissionsForRole($newRole);
 
         if ($targetEmail === '' || !filter_var($targetEmail, FILTER_VALIDATE_EMAIL)) {
             $message = 'Ongeldig e-mailadres.';
-        } elseif (!in_array($newRole, $allowedRoles, true)) {
+        } elseif ($newRole === null) {
             $message = 'Ongeldige rol gekozen.';
         } else {
-            $adminFlag = !empty($newPermissions) ? 1 : 0;
+            $adminFlag = $newRole === 'administrator' ? 1 : 0;
             $permissionsJson = json_encode($newPermissions, JSON_UNESCAPED_SLASHES);
             $stmt = $pdo->prepare('UPDATE accounts SET role = ?, admin = ?, permissions = ? WHERE email = ?');
             $stmt->execute([$newRole, $adminFlag, $permissionsJson, $targetEmail]);
 
             if ($targetEmail === ($_SESSION['email'] ?? '')) {
                 $_SESSION['role'] = $newRole;
-                $_SESSION['admin'] = $adminFlag;
+                $_SESSION['admin'] = $newRole === 'administrator' ? 1 : 0;
                 $_SESSION['permissions'] = $permissionsJson;
                 $_SESSION['can_access_admin'] = !empty($newPermissions);
             }
@@ -1032,18 +1004,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $targetEmailNew = trim((string)($_POST['new_email'] ?? ''));
         $newFirstName = trim((string)($_POST['new_first_name'] ?? ''));
         $newLastName = trim((string)($_POST['new_last_name'] ?? ''));
-        $newRole = trim((string)($_POST['new_role'] ?? 'viewer'));
+        $newRole = siteNormalizeSubmittedRole($_POST['new_role'] ?? 'viewer');
         $newPassword = (string)($_POST['new_password'] ?? '');
-        $allowedRoles = ['administrator', 'content_manager', 'editor', 'viewer'];
 
-        // Auto-set permissions based on role only
-        $newPermissions = permissionsForRole($newRole, $rolePermissions);
+        $newPermissions = $newRole === null ? [] : sitePermissionsForRole($newRole);
 
         if ($targetEmailOld === '' || !filter_var($targetEmailOld, FILTER_VALIDATE_EMAIL)) {
             $message = 'Ongeldig oud e-mailadres.';
         } elseif ($targetEmailNew === '' || !filter_var($targetEmailNew, FILTER_VALIDATE_EMAIL)) {
             $message = 'Ongeldig nieuw e-mailadres.';
-        } elseif (!in_array($newRole, $allowedRoles, true)) {
+        } elseif ($newRole === null) {
             $message = 'Ongeldige rol gekozen.';
         } else {
             // Check if new email is already in use (but not by the user being edited)
@@ -1053,7 +1023,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'Dit e-mailadres is al in gebruik.';
             } else {
                 // If password is provided, hash it; otherwise keep the old one
-                $updateFields = ['first_name' => $newFirstName !== '' ? $newFirstName : null, 'last_name' => $newLastName !== '' ? $newLastName : null, 'email' => $targetEmailNew, 'role' => $newRole, 'admin' => !empty($newPermissions) ? 1 : 0, 'permissions' => json_encode($newPermissions, JSON_UNESCAPED_SLASHES)];
+                $updateFields = ['first_name' => $newFirstName !== '' ? $newFirstName : null, 'last_name' => $newLastName !== '' ? $newLastName : null, 'email' => $targetEmailNew, 'role' => $newRole, 'admin' => $newRole === 'administrator' ? 1 : 0, 'permissions' => json_encode($newPermissions, JSON_UNESCAPED_SLASHES)];
 
                 if ($newPassword !== '') {
                     $updateFields['wachtwoord'] = password_hash($newPassword, PASSWORD_DEFAULT);
@@ -1078,7 +1048,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['first_name'] = $newFirstName;
                     $_SESSION['last_name'] = $newLastName;
                     $_SESSION['role'] = $newRole;
-                    $_SESSION['admin'] = !empty($newPermissions) ? 1 : 0;
+                    $_SESSION['admin'] = $newRole === 'administrator' ? 1 : 0;
                     $_SESSION['permissions'] = json_encode($newPermissions, JSON_UNESCAPED_SLASHES);
                     $_SESSION['can_access_admin'] = !empty($newPermissions);
                 }
@@ -2955,10 +2925,9 @@ if ($page === 'users') {
                                     <div>
                                         <label class="form-label" for="new_role">Basisrol</label>
                                         <select id="new_role" name="new_role" class="form-input">
-                                            <option value="viewer">Geen vaste rol</option>
-                                            <option value="editor">Onderzoeker</option>
-                                            <option value="content_manager">Content Manager</option>
-                                            <option value="administrator">Administrator</option>
+                                            <?php foreach (siteCanonicalRoles() as $role): ?>
+                                                <option value="<?= htmlspecialchars($role, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(siteRoleLabels()[$role], ENT_QUOTES, 'UTF-8') ?></option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
                                 </div>
@@ -3018,14 +2987,8 @@ if ($page === 'users') {
                                     $accFirstName = trim((string)($acc['first_name'] ?? ''));
                                     $accLastName = trim((string)($acc['last_name'] ?? ''));
                                     $accFullName = trim($accFirstName . ' ' . $accLastName);
-                                    $accRole = trim((string)($acc['role'] ?? ''));
-                                    if ($accRole === '') {
-                                        $accRole = ((int)($acc['admin'] ?? 0) === 1) ? 'superadmin' : 'viewer';
-                                    }
-                                    $accPermissions = normalizeAccountPermissions($acc['permissions'] ?? null);
-                                    if ($accPermissions === null) {
-                                        $accPermissions = permissionsForRole($accRole, $rolePermissions);
-                                    }
+                                    $accRole = siteNormalizeAccountRole($acc['role'] ?? '', $acc['admin'] ?? 0);
+                                    $accPermissions = sitePermissionsForRole($accRole);
                                     ?>
                                     <div class="border border-gray-200 rounded p-4 bg-white space-y-4">
                                         <div class="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">

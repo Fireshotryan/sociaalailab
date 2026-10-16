@@ -1,16 +1,24 @@
 <?php
 require 'db.php';
+require_once 'role_permissions.php';
 
 echo "=== Updating Live Database - Onderzoeker Permissions ===\n\n";
 
-$onderzokerPerms = ['access_booking', 'create_events', 'view_feedback', 'view_pages'];
-$permJson = json_encode($onderzokerPerms, JSON_UNESCAPED_SLASHES);
+$permJson = json_encode(sitePermissionsForRole('onderzoeker'), JSON_UNESCAPED_SLASHES);
+$legacyResearcherRoles = array_keys(array_filter(
+    siteLegacyRoleAliases(),
+    function ($canonicalRole) {
+        return $canonicalRole === 'onderzoeker';
+    }
+));
+$targetRoles = array_merge(['onderzoeker'], $legacyResearcherRoles);
+$rolePlaceholders = implode(', ', array_fill(0, count($targetRoles), '?'));
 
-$query = "UPDATE accounts SET permissions = :perms WHERE role = 'editor' OR role = 'onderzoeker'";
+$query = "UPDATE accounts SET permissions = ? WHERE role IN ($rolePlaceholders)";
 $stmt = $pdo->prepare($query);
 
 try {
-    $stmt->execute([':perms' => $permJson]);
+	$stmt->execute(array_merge([$permJson], $targetRoles));
     $count = $stmt->rowCount();
     echo "✅ Updated $count onderzoeker account(s)\n";
     echo "✅ Added view_pages permission\n";

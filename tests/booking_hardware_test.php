@@ -28,6 +28,18 @@ function assertInvalidHardware($json, $hardware, $label)
     throw new RuntimeException($label . ': expected validation failure');
 }
 
+function assertInvalidPeriod($date, $startTime, $endTime, $label)
+{
+    global $assertions;
+    $assertions++;
+    try {
+        validateBookingPeriod($date, $startTime, $endTime);
+    } catch (InvalidArgumentException $exception) {
+        return;
+    }
+    throw new RuntimeException($label . ': expected validation failure');
+}
+
 $valid = validateBookingHardwareJson('[{"id":"1","quantity":1}]', $hardware);
 assertSameValue([['id' => 1, 'quantity' => 1]], $valid, 'Valid hardware item');
 assertSameValue(
@@ -36,6 +48,24 @@ assertSameValue(
     'Two units accepted when configured inventory has two'
 );
 assertSameValue([], validateBookingHardwareJson('[]', $hardware), 'Empty hardware list');
+
+assertInvalidPeriod('2026-10-20', '15:00', '14:00', 'End before start');
+assertInvalidPeriod('2026-10-20', '14:00', '14:00', 'Start equals end');
+assertSameValue(
+    ['date' => '2026-10-20', 'start_time' => '14:00:00', 'end_time' => '15:00:00'],
+    validateBookingPeriod('2026-10-20', '14:00', '15:00'),
+    'Valid booking period'
+);
+foreach ([
+    [null, '14:00', '15:00', 'Missing date'],
+    ['2026-02-30', '14:00', '15:00', 'Invalid calendar date'],
+    ['2026-10-20', null, '15:00', 'Missing start time'],
+    ['2026-10-20', '14:00', null, 'Missing end time'],
+    ['2026-10-20', '14:0', '15:00', 'Malformed start time'],
+    ['2026-10-20', '14:00', '25:00', 'Out-of-range end time'],
+] as [$date, $start, $end, $label]) {
+    assertInvalidPeriod($date, $start, $end, $label);
+}
 
 foreach ([
     [null, 'Missing JSON'],

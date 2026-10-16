@@ -3,16 +3,18 @@ session_start();
 require 'db.php';
 require 'helpers.php';
 require 'booking_hardware.php';
+require_once 'role_permissions.php';
 
-if (!($_SESSION['can_access_admin'] ?? false)) {
+$sessionRole = siteNormalizeAccountRole($_SESSION['role'] ?? '', 0);
+$sessionPermissions = sitePermissionsForRole($sessionRole);
+$_SESSION['role'] = $sessionRole;
+$_SESSION['admin'] = $sessionRole === 'administrator' ? 1 : 0;
+$_SESSION['permissions'] = json_encode($sessionPermissions, JSON_UNESCAPED_SLASHES);
+$_SESSION['can_access_admin'] = !empty($sessionPermissions);
+
+if (!$_SESSION['can_access_admin']) {
     header('Location: login.php');
     exit;
-}
-
-$sessionPermissions = [];
-$decodedPermissions = json_decode((string)($_SESSION['permissions'] ?? ''), true);
-if (is_array($decodedPermissions)) {
-    $sessionPermissions = array_map('strval', $decodedPermissions);
 }
 
 if (!in_array('access_booking', $sessionPermissions, true)) {
@@ -202,19 +204,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_date'])) {
     }
 
     try {
-        $bookingDateObject = is_string($bookingDate) ? DateTimeImmutable::createFromFormat('!Y-m-d', $bookingDate) : false;
-        if (!$bookingDateObject || $bookingDateObject->format('Y-m-d') !== $bookingDate) {
-            throw new InvalidArgumentException('Kies een geldige boekingsdatum.');
-        }
-        if (!is_string($bookingStartTime) || !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $bookingStartTime)
-            || !is_string($bookingEndTime) || !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $bookingEndTime)) {
-            throw new InvalidArgumentException('Vul een geldige begin- en eindtijd in.');
-        }
-        $bookingStartTime .= ':00';
-        $bookingEndTime .= ':00';
-        if (bookingTimeToSeconds($bookingEndTime) <= bookingTimeToSeconds($bookingStartTime)) {
-            throw new InvalidArgumentException('De eindtijd moet na de begintijd liggen.');
-        }
+        $validatedPeriod = validateBookingPeriod($bookingDate, $bookingStartTime, $bookingEndTime);
+        $bookingDate = $validatedPeriod['date'];
+        $bookingStartTime = $validatedPeriod['start_time'];
+        $bookingEndTime = $validatedPeriod['end_time'];
 
         $requestedHardware = validateBookingHardwareJson($_POST['hardware_json'] ?? null, $hardware);
         $hardwareJson = json_encode($requestedHardware, JSON_THROW_ON_ERROR);
@@ -964,31 +957,18 @@ function selectDay(dateStr, month, year) {
 }
 
 function checkIfPastDate(dateStr) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const selectedDate = new Date(dateStr);
-    selectedDate.setHours(0, 0, 0, 0);
-    
     const submitBtn = document.getElementById('submitBtn');
-    const bookingForm = document.getElementById('bookingForm');
-    
-    if (selectedDate < today) {
-        // Past date - disable everything
-        submitBtn.disabled = true;
-        submitBtn.title = 'Je kan geen bookings toevoegen voor voorbijgegane dagen';
-        // Disable all form inputs
-        bookingForm.querySelectorAll('input, select, button').forEach(el => {
-            if (el.id !== 'submitBtn') el.disabled = true;
-        });
-    } else {
-        // Future date - enable everything
-        submitBtn.disabled = false;
-        submitBtn.title = '';
-        bookingForm.querySelectorAll('input, select, button').forEach(el => {
-            el.disabled = false;
-        });
-    }
+    if (!submitBtn) return;
+
+    const hasValidDate = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+        && !Number.isNaN(Date.parse(dateStr))
+        && new Date(dateStr).toISOString().slice(0, 10) === dateStr;
+    const today = new Date();
+    const todayString = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+    const isPastDate = hasValidDate && dateStr < todayString;
+
+    submitBtn.disabled = isPastDate;
+    submitBtn.title = isPastDate ? 'Je kan geen bookings toevoegen voor voorbijgegane dagen' : '';
 }
 
 // Toggle location description field based on whether extern (999) is selected
@@ -1048,9 +1028,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for date field changes to enable/disable submit button
     const dateInput = document.getElementById('booking_date');
     if (dateInput) {
-        dateInput.addEventListener('change', function() {
+        const updatePastDateState = function() {
             checkIfPastDate(this.value);
-        });
+        };
+        dateInput.addEventListener('input', updatePastDateState);
+        dateInput.addEventListener('change', updatePastDateState);
     }
     
     // Add form validation on submit

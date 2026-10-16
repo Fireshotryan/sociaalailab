@@ -1,32 +1,12 @@
 <?php
 session_start();
 require 'db.php';
+require_once 'role_permissions.php';
 
 $banner1 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner1'")->fetchColumn() ?: 'images/banner_website_01.jpg';
 $banner2 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner2'")->fetchColumn() ?: 'images/banner_website_02.jpg';
 $banner3 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner3'")->fetchColumn() ?: null;
 $banner4 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner4'")->fetchColumn() ?: null;
-
-$rolePermissions = [
-    'administrator' => ['create_users', 'edit_users', 'delete_users', 'manage_banners', 'manage_events', 'manage_pages', 'delete_events', 'delete_pages', 'optimize_images', 'approve_content', 'access_booking', 'view_audit'],
-    'content_manager' => ['manage_banners', 'manage_events', 'manage_pages', 'delete_events', 'delete_pages', 'optimize_images', 'approve_content', 'access_booking'],
-    'onderzoeker' => ['access_booking', 'create_events', 'view_feedback', 'view_pages'],
-    'viewer' => [],
-];
-
-function normalizeAccountPermissions($value)
-{
-    if (!is_string($value) || trim($value) === '') {
-        return null;
-    }
-
-    $decoded = json_decode($value, true);
-    if (!is_array($decoded)) {
-        return null;
-    }
-
-    return array_values(array_unique(array_filter(array_map('strval', $decoded))));
-}
 
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -50,25 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user'] = $user['email'];
             $_SESSION['email'] = $user['email'];
             $_SESSION['first_name'] = $user['first_name'] ?? '';
-            $role = trim((string)($user['role'] ?? ''));
-            
-            // Migration: map old roles to new roles FIRST
-            if ($role === '' || $role === 'superadmin') {
-                $role = ((int)($user['admin'] ?? 0) === 1) ? 'administrator' : 'viewer';
-            } elseif ($role === 'content_manager' || $role === 'editor' || $role === 'booking_only') {
-                // Map old roles to new ones
-                if ($role === 'content_manager') $role = 'content_manager';
-                elseif ($role === 'editor' || $role === 'booking_only') $role = 'onderzoeker';
-            }
-            
-            // NOW get permissions based on mapped role
-            $permissions = normalizeAccountPermissions($user['permissions'] ?? null);
-            if ($permissions === null || empty($permissions)) {
-                $permissions = $rolePermissions[$role] ?? [];
-            }
-            
-            // Set admin flag based on whether user has any permissions
-            $adminFlag = !empty($permissions) ? 1 : 0;
+            $role = siteNormalizeAccountRole($user['role'] ?? '', $user['admin'] ?? 0);
+            $permissions = sitePermissionsForRole($role);
+            $adminFlag = $role === 'administrator' ? 1 : 0;
             
             $_SESSION['role'] = $role;
             $_SESSION['admin'] = $adminFlag;

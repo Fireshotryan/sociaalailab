@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'db.php';
+require_once 'role_permissions.php';
 
 // Enable error reporting
 ini_set('display_errors', 1);
@@ -13,27 +14,6 @@ echo "POST data: " . print_r($_POST, true) . "\n";
 
 $banner1 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner1'")->fetchColumn() ?: 'images/banner_website_01.jpg';
 $banner2 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner2'")->fetchColumn() ?: 'images/banner_website_02.jpg';
-
-$rolePermissions = [
-    'administrator' => ['create_users', 'edit_users', 'delete_users', 'manage_banners', 'manage_events', 'manage_pages', 'delete_events', 'delete_pages', 'optimize_images', 'approve_content'],
-    'content_manager' => ['manage_banners', 'manage_events', 'manage_pages', 'delete_events', 'delete_pages', 'optimize_images', 'approve_content'],
-    'onderzoeker' => ['access_booking', 'create_events', 'view_feedback'],
-    'viewer' => [],
-];
-
-function normalizeAccountPermissions($value)
-{
-    if (!is_string($value) || trim($value) === '') {
-        return null;
-    }
-
-    $decoded = json_decode($value, true);
-    if (!is_array($decoded)) {
-        return null;
-    }
-
-    return array_values(array_unique(array_filter(array_map('strval', $decoded))));
-}
 
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -67,30 +47,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "\n--- LOGIN SUCCESSFUL ---\n";
             // Set session and redirect
             $_SESSION['user'] = $user['email'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['admin'] = $user['admin'];
-            $_SESSION['first_name'] = $user['first_name'] ?? '';
-            $role = trim((string)($user['role'] ?? ''));
-            
-            echo "Role from DB: " . $role . "\n";
-            
-            // Migration: map old roles to new roles
-            if ($role === '' || $role === 'superadmin') {
-                $role = ((int)($user['admin'] ?? 0) === 1) ? 'administrator' : 'viewer';
-            } elseif ($role === 'content_manager' || $role === 'editor' || $role === 'booking_only') {
-                // Map old roles to new ones
-                if ($role === 'content_manager') $role = 'content_manager';
-                elseif ($role === 'editor' || $role === 'booking_only') $role = 'onderzoeker';
-            }
+            $role = siteNormalizeAccountRole($user['role'] ?? '', $user['admin'] ?? 0);
             
             echo "Mapped role: " . $role . "\n";
-            
-            $permissions = normalizeAccountPermissions($user['permissions'] ?? null);
-            if ($permissions === null) {
-                $permissions = $rolePermissions[$role] ?? [];
-            }
+
+            $permissions = sitePermissionsForRole($role);
             echo "Permissions: " . implode(', ', $permissions) . "\n";
             
+            $_SESSION['admin'] = $role === 'administrator' ? 1 : 0;
             $_SESSION['role'] = $role;
             $_SESSION['permissions'] = json_encode($permissions, JSON_UNESCAPED_SLASHES);
             $_SESSION['can_access_admin'] = !empty($permissions);

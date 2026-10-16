@@ -94,6 +94,40 @@ function bookingIntervalsOverlap($dateA, $startA, $endA, $dateB, $startB, $endB)
         && bookingTimeToSeconds($endA) > bookingTimeToSeconds($startB);
 }
 
+function validateBookingPeriod($date, $startTime, $endTime)
+{
+    if (!is_string($date) || !preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $date)) {
+        throw new InvalidArgumentException('Kies een geldige boekingsdatum.');
+    }
+    if (!is_string($startTime) || !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $startTime)
+        || !is_string($endTime) || !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $endTime)) {
+        throw new InvalidArgumentException('Vul een geldige begin- en eindtijd in.');
+    }
+
+    $startDateTime = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $date . ' ' . $startTime);
+    $startErrors = DateTimeImmutable::getLastErrors();
+    $endDateTime = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $date . ' ' . $endTime);
+    $endErrors = DateTimeImmutable::getLastErrors();
+
+    if (!$startDateTime || !$endDateTime
+        || ($startErrors !== false && ($startErrors['warning_count'] > 0 || $startErrors['error_count'] > 0))
+        || ($endErrors !== false && ($endErrors['warning_count'] > 0 || $endErrors['error_count'] > 0))
+        || $startDateTime->format('Y-m-d H:i') !== $date . ' ' . $startTime
+        || $endDateTime->format('Y-m-d H:i') !== $date . ' ' . $endTime) {
+        throw new InvalidArgumentException('Kies een geldige datum en geldige begin- en eindtijd.');
+    }
+
+    if ($endDateTime <= $startDateTime) {
+        throw new InvalidArgumentException('De eindtijd moet na de begintijd liggen.');
+    }
+
+    return [
+        'date' => $date,
+        'start_time' => $startDateTime->format('H:i:s'),
+        'end_time' => $endDateTime->format('H:i:s'),
+    ];
+}
+
 function getBookingHardwareAvailabilityError($requestedHardware, $existingBookings, $bookingDate, $startTime, $endTime, $hardware)
 {
     $inventory = [];

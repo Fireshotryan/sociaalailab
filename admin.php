@@ -403,9 +403,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'optimize_image' => 'optimize_images',
         'approve_item' => 'approve_content',
         'reject_item' => 'approve_content',
+        'get_approval_item' => 'approve_content',
+        'approve_with_review' => 'approve_content',
     ];
 
     if ($action !== '' && isset($actionPermissionMap[$action]) && !$hasPermission($actionPermissionMap[$action])) {
+        if ($action === 'get_approval_item') {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'error' => 'Je hebt geen rechten om deze actie uit te voeren.']);
+            exit;
+        }
+        if ($action === 'approve_with_review') {
+            http_response_code(403);
+            header('Content-Type: text/plain; charset=utf-8');
+            echo 'Je hebt geen rechten om deze actie uit te voeren.';
+            exit;
+        }
+
         $message = 'Je hebt geen rechten om deze actie uit te voeren.';
         $action = '';
     }

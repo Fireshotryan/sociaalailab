@@ -1,17 +1,31 @@
 <?php
-// Auto-detect if we're on localhost or production
-$isLocalhost = strpos($_SERVER['HTTP_HOST'] ?? 'localhost', 'localhost') !== false || 
-               strpos($_SERVER['HTTP_HOST'] ?? 'localhost', '127.0.0.1') !== false;
 
-if ($isLocalhost) {
-    // Local development
-    $host = "localhost";
+// Bepaal automatisch of de website lokaal of live draait
+$currentHost = $_SERVER['HTTP_HOST'] ?? '';
+
+$isLocal =
+    str_contains($currentHost, 'sociaalailab.test') ||
+    str_contains($currentHost, 'localhost') ||
+    str_contains($currentHost, '127.0.0.1');
+
+if ($isLocal) {
+
+    // =========================
+    // LOKAAL - SERVBAY
+    // =========================
+    $host = "127.0.0.1";
+    $port = "3306";
     $db   = "sociaalai";
     $user = "root";
-    $pass = "";
+    $pass = "ServBay.dev";
+
 } else {
-    // Production (TransIP)
+
+    // =========================
+    // LIVE - TRANSIP
+    // =========================
     $host = "sociju-sociaalailab.db.transip.me";
+    $port = "3306";
     $db   = "sociju_sociaalailab";
     $user = "sociju_Sociaalailab";
     $pass = "Techniekcollege12345#";
@@ -19,7 +33,7 @@ if ($isLocalhost) {
 
 try {
     $pdo = new PDO(
-        "mysql:host=$host;dbname=$db;charset=utf8mb4",
+        "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4",
         $user,
         $pass,
         [
@@ -28,6 +42,8 @@ try {
             PDO::ATTR_EMULATE_PREPARES => false,
         ]
     );
+
+    // VANAF HIER LAAT JE DE REST VAN JE HUIDIGE db.php STAAN
 
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS events (
@@ -79,7 +95,7 @@ try {
         $pdo->exec("ALTER TABLE pages ADD COLUMN approved_by VARCHAR(255) DEFAULT NULL");
     }
     $columns = $pdo->query("SHOW COLUMNS FROM events")->fetchAll(PDO::FETCH_COLUMN);
-    
+
     if (!in_array('location', $columns)) {
         $pdo->exec("ALTER TABLE events ADD COLUMN location VARCHAR(255) DEFAULT NULL");
     }
@@ -101,8 +117,11 @@ try {
     if (!in_array('end_date', $columns)) {
         $pdo->exec("ALTER TABLE events ADD COLUMN end_date DATE DEFAULT NULL");
     }
-    if (!in_array('info_link', $columns)) {
-        $pdo->exec("ALTER TABLE events ADD COLUMN info_link VARCHAR(255) DEFAULT NULL");
+    $infoLinkColumn = $pdo->query("SHOW COLUMNS FROM events LIKE 'info_link'")->fetch();
+    if (!$infoLinkColumn) {
+        $pdo->exec("ALTER TABLE events ADD COLUMN info_link TEXT NULL DEFAULT NULL");
+    } elseif ($infoLinkColumn['Null'] !== 'YES') {
+        $pdo->exec("ALTER TABLE events MODIFY info_link TEXT NULL DEFAULT NULL");
     }
     if (!in_array('signup_embed', $columns)) {
         $pdo->exec("ALTER TABLE events ADD COLUMN signup_embed TEXT DEFAULT NULL");
@@ -110,7 +129,7 @@ try {
     if (!in_array('show_on_homepage', $columns)) {
         $pdo->exec("ALTER TABLE events ADD COLUMN show_on_homepage TINYINT(1) DEFAULT 0");
     }
-  if (!in_array('event_summary', $columns)) {
+    if (!in_array('event_summary', $columns)) {
         $pdo->exec("ALTER TABLE events ADD COLUMN event_summary TEXT DEFAULT NULL");
     }
     if (!in_array('event_gallery', $columns)) {
@@ -189,7 +208,7 @@ try {
     $pdo->exec("UPDATE accounts SET role = 'superadmin' WHERE admin = 1 AND (role IS NULL OR role = '' OR role = 'viewer') AND (permissions IS NULL OR permissions = '')");
     $pdo->exec("UPDATE accounts SET admin = 1 WHERE role IN ('superadmin', 'content_manager', 'editor') AND (permissions IS NULL OR permissions = '')");
     $pdo->exec("UPDATE accounts SET admin = 0 WHERE role = 'viewer' AND (permissions IS NULL OR permissions = '' OR permissions = '[]')");
-    
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS audit_logs (
             id INT AUTO_INCREMENT PRIMARY KEY,
             action VARCHAR(50) NOT NULL,
@@ -199,7 +218,7 @@ try {
             performed_by VARCHAR(255) DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-    
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS password_resets (
             id INT AUTO_INCREMENT PRIMARY KEY,
             email VARCHAR(255) NOT NULL,
@@ -237,16 +256,16 @@ try {
 
     $bookingColumns = $pdo->query("SHOW COLUMNS FROM bookings")->fetchAll(PDO::FETCH_COLUMN);
     if (!in_array('location_description', $bookingColumns)) {
-         $pdo->exec("ALTER TABLE bookings ADD COLUMN location_description VARCHAR(255) DEFAULT NULL");
+        $pdo->exec("ALTER TABLE bookings ADD COLUMN location_description VARCHAR(255) DEFAULT NULL");
     }
     if (!in_array('staff_present', $bookingColumns)) {
-         $pdo->exec("ALTER TABLE bookings ADD COLUMN staff_present TEXT DEFAULT NULL");
+        $pdo->exec("ALTER TABLE bookings ADD COLUMN staff_present TEXT DEFAULT NULL");
     }
     if (!in_array('title', $bookingColumns)) {
-         $pdo->exec("ALTER TABLE bookings ADD COLUMN title VARCHAR(255) DEFAULT NULL");
+        $pdo->exec("ALTER TABLE bookings ADD COLUMN title VARCHAR(255) DEFAULT NULL");
     }
     if (!in_array('tables_ids', $bookingColumns)) {
-         $pdo->exec("ALTER TABLE bookings ADD COLUMN tables_ids JSON DEFAULT NULL");
+        $pdo->exec("ALTER TABLE bookings ADD COLUMN tables_ids JSON DEFAULT NULL");
     }
 
     $pdo->exec("
@@ -273,7 +292,7 @@ try {
     if (!in_array('end_time', $staffColumns)) {
         $pdo->exec("ALTER TABLE location_staff ADD COLUMN end_time TIME DEFAULT NULL");
     }
-    
+
     // Remove old unique constraint if it exists
     try {
         $pdo->exec("ALTER TABLE location_staff DROP INDEX IF EXISTS unique_staff_per_location_date");
@@ -337,3 +356,4 @@ try {
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
 }
+

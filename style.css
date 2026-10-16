@@ -3274,6 +3274,29 @@ main>div.grid>div:hover {
     transform: scale(1.1);
 }
 
+.footer-address {
+    color: #000;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 auto 12px;
+}
+
+.footer-address strong,
+.footer-address a {
+    display: block;
+}
+
+.footer-address a {
+    color: #1b5e20;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.footer-address a:hover,
+.footer-address a:focus-visible {
+    color: #00811F;
+}
+
 .partners-inline {
     margin-top: 20px;
     margin-bottom: 0;
@@ -4371,6 +4394,10 @@ section:focus-visible,
     scrollbar-width: none;
 }
 
+#homepage-events.homepage-carousel {
+    align-items: flex-start;
+}
+
 .homepage-carousel::-webkit-scrollbar {
     display: none;
 }
@@ -4452,10 +4479,14 @@ section:focus-visible,
 }
 
 .festival-promo-image {
+    background: #f6f6f6;
     display: block;
-    height: clamp(180px, 34vh, 300px);
-    object-fit: cover;
+    height: auto;
+    max-height: min(34vh, 300px);
+    max-height: min(34dvh, 300px);
+    object-fit: contain;
     object-position: center;
+    max-width: 100%;
     width: 100%;
 }
 
@@ -4597,6 +4628,20 @@ section:focus-visible,
     margin: 0.5rem 0 0.25rem;
 }
 
+.homepage-news-card-title,
+.homepage-news-card-meta,
+.homepage-news-card-summary {
+    font-family: var(--site-font-family);
+}
+
+.homepage-news-card-title strong,
+.homepage-news-card-title b,
+.homepage-news-card-summary strong,
+.homepage-news-card-summary b {
+    font-family: inherit;
+    font-weight: bolder;
+}
+
 .homepage-news-card-meta {
     color: #777;
     font-size: 0.85rem;
@@ -4639,17 +4684,77 @@ section:focus-visible,
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 800px) {
     .festival-promo-modal:not([hidden]) {
+        align-items: center;
+        box-sizing: border-box;
+        overflow-x: hidden;
         padding: 0.75rem;
     }
 
+    .festival-promo-dialog {
+        box-sizing: border-box;
+        max-height: calc(100vh - 1.5rem);
+        max-height: calc(100dvh - 1.5rem);
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        width: 100%;
+    }
+
     .festival-promo-image {
-        height: clamp(160px, 30vh, 230px);
+        background: #f6f6f6;
+        height: auto;
+        max-height: min(30vh, 220px);
+        max-height: min(30dvh, 220px);
+        object-fit: contain;
+        object-position: center;
+        width: 100%;
+    }
+
+    .festival-promo-close {
+        margin-bottom: -2.75rem;
+        margin-left: auto;
+        margin-right: 0.8rem;
+        position: sticky;
+        top: 0.5rem;
+        z-index: 2;
     }
 
     .festival-promo-content {
-        padding: 1.25rem 1rem 1.5rem;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 640px) {
+    .festival-promo-modal:not([hidden]) {
+        padding: 0.5rem;
+    }
+
+    .festival-promo-dialog {
+        max-height: calc(100vh - 1rem);
+        max-height: calc(100dvh - 1rem);
+    }
+
+    .festival-promo-image {
+        max-height: min(30vh, 200px);
+        max-height: min(30dvh, 200px);
+    }
+
+    .festival-promo-content {
+        padding: 1rem 0.85rem 1.25rem;
+    }
+
+    .festival-promo-content h2 {
+        margin-bottom: 0.85rem;
+    }
+
+    .festival-promo-link {
+        box-sizing: border-box;
+        max-width: 100%;
+        width: 100%;
     }
 
     .homepage-carousel-arrow {
@@ -4669,6 +4774,37 @@ section:focus-visible,
 
     .homepage-carousel-slide > .flex-1:last-child {
         display: none;
+    }
+}
+
+@media (max-width: 375px) {
+    .festival-promo-modal:not([hidden]) {
+        padding: 0.35rem;
+    }
+
+    .festival-promo-dialog {
+        max-height: calc(100vh - 0.7rem);
+        max-height: calc(100dvh - 0.7rem);
+    }
+
+    .festival-promo-content {
+        padding: 0.85rem 0.7rem 1rem;
+    }
+
+    .festival-promo-date,
+    .festival-promo-countdown {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 800px) and (orientation: landscape) and (max-height: 500px) {
+    .festival-promo-image {
+        max-height: min(22vh, 110px);
+        max-height: min(22dvh, 110px);
+    }
+
+    .festival-promo-content {
+        padding-bottom: 0.85rem;
     }
 }
 

@@ -263,6 +263,19 @@ function handleDocumentUpload($fileField)
     return ['names' => $saved];
 }
 
+function cleanupNewEventUploads(array $fileNames)
+{
+    foreach (array_unique(array_filter($fileNames, 'is_string')) as $fileName) {
+        if ($fileName !== basename($fileName)) {
+            continue;
+        }
+        $path = __DIR__ . '/uploads/' . $fileName;
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+}
+
 // Image optimizer function
 function optimizeImage($imagePath, $quality = 85)
 {
@@ -523,7 +536,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $title = ' ';
             }
             // check existing image
-            $stmt = $pdo->prepare('SELECT image, event_gallery, event_documents FROM events WHERE id = ?');
+            $stmt = $pdo->prepare('SELECT * FROM events WHERE id = ?');
             $stmt->execute([$id]);
             $row = $stmt->fetch();
             $oldImage = $row ? $row['image'] : null;
@@ -579,33 +592,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             ? json_encode($documentNames, JSON_UNESCAPED_SLASHES)
                             : null;
 
-                        // update nu ook updated_at, updated_by, target_audience, en internal_notes
-                        $stmt = $pdo->prepare('UPDATE events SET title=?, date=?, end_date=?, time=?, time_end=?, description=?, event_summary=?, meer_info=?, info_link=?, image=?, event_gallery=?, event_documents=?, location=?, hardware_request=?, staff_present=?, target_audience=?, internal_notes=?, show_signup_button=?, signup_embed=?, show_on_homepage=?, updated_at=NOW(), updated_by=? WHERE id=?');
-                        $stmt->execute([$title, $date, $end_date, $time ?: null, $time_end ?: null, $description, $eventSummary ?: null, $meerInfo ?: null, $infoLink ?: null, $imageName, $galleryJson, $documentsJson, $location ?: null, $hardwareRequest ?: null, $staffPresent ?: null, $targetAudience ?: null, $internalNotes ?: null, $showSignupButton, $signupEmbed ?: null, $showOnHomepage, $currentUser, $id]);
-                        // Audit log: event updated
-                        audit_log($pdo, 'update', 'events', $id, 'title: ' . $title, $currentUser);
+                        $newUploads = array_merge(
+                            [$upload['name'] ?? null],
+                            $galleryUpload['names'] ?? [],
+                            $documentUpload['names'] ?? []
+                        );
+                        $engineStmt = $pdo->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+                        $engineStmt->execute(['events']);
+                        if (strtoupper((string)$engineStmt->fetchColumn()) !== 'INNODB') {
+                            cleanupNewEventUploads($newUploads);
+                            $message = 'Opslaan is geblokkeerd omdat veilige versiecontrole niet beschikbaar is. Neem contact op met de websitebeheerder.';
+                        } else {
+                            $submittedVersion = $_POST['edit_version'] ?? '';
+                            $pdo->beginTransaction();
+                            try {
+                                $currentStmt = $pdo->prepare('SELECT * FROM events WHERE id = ? FOR UPDATE');
+                                $currentStmt->execute([$id]);
+                                $currentEvent = $currentStmt->fetch();
 
-                        // indien nieuwe upload en oud bestaat: verwijderen
-                        if (!empty($upload['name']) && $oldImage && file_exists(__DIR__ . '/uploads/' . $oldImage)) {
-                            @unlink(__DIR__ . '/uploads/' . $oldImage);
-                        }
-                        if ($removeImage && $oldImage && file_exists(__DIR__ . '/uploads/' . $oldImage)) {
-                            @unlink(__DIR__ . '/uploads/' . $oldImage);
-                        }
-                        foreach ($removeGallery as $galleryFile) {
-                            $galleryPath = __DIR__ . '/uploads/' . $galleryFile;
-                            if (file_exists($galleryPath)) {
-                                @unlink($galleryPath);
+                                if (!$currentEvent) {
+                                    $pdo->rollBack();
+                                    cleanupNewEventUploads($newUploads);
+                                    $message = 'Dit kalenderitem bestaat niet meer. Vernieuw de pagina en probeer opnieuw.';
+                                } elseif (!is_string($submittedVersion) || !hash_equals(eventEditVersion($currentEvent), $submittedVersion)) {
+                                    $pdo->rollBack();
+                                    cleanupNewEventUploads($newUploads);
+                                    audit_log($pdo, 'conflict', 'events', $id, 'path=agenda_edit; reason=stale_form', $currentUser);
+                                    $message = 'Dit kalenderitem is sinds het openen gewijzigd door een andere beheerder. Je wijzigingen zijn niet opgeslagen. Herlaad het item om de nieuwste gegevens te bekijken en probeer daarna opnieuw.';
+                                } else {
+                                    $updatedEventValues = [
+                                        'title' => $title,
+                                        'date' => $date,
+                                        'end_date' => $end_date,
+                                        'time' => $time ?: null,
+                                        'time_end' => $time_end ?: null,
+                                        'description' => $description,
+                                        'event_summary' => $eventSummary ?: null,
+                                        'meer_info' => $meerInfo ?: null,
+                                        'info_link' => $infoLink ?: null,
+                                        'image' => $imageName,
+                                        'event_gallery' => $galleryJson,
+                                        'event_documents' => $documentsJson,
+                                        'location' => $location ?: null,
+                                        'hardware_request' => $hardwareRequest ?: null,
+                                        'staff_present' => $staffPresent ?: null,
+                                        'target_audience' => $targetAudience ?: null,
+                                        'internal_notes' => $internalNotes ?: null,
+                                        'show_signup_button' => $showSignupButton,
+                                        'signup_embed' => $signupEmbed ?: null,
+                                        'show_on_homepage' => $showOnHomepage,
+                                    ];
+                                    $changedFields = [];
+                                    foreach ($updatedEventValues as $field => $value) {
+                                        $previousValue = $currentEvent[$field] ?? null;
+                                        if ($previousValue === null && ($value === null || $value === '')) {
+                                            continue;
+                                        }
+                                        if ($value === null && $previousValue === '') {
+                                            continue;
+                                        }
+                                        if ((string)$previousValue !== (string)$value) {
+                                            $changedFields[] = $field;
+                                        }
+                                    }
+
+                                    $stmt = $pdo->prepare('UPDATE events SET title=?, date=?, end_date=?, time=?, time_end=?, description=?, event_summary=?, meer_info=?, info_link=?, image=?, event_gallery=?, event_documents=?, location=?, hardware_request=?, staff_present=?, target_audience=?, internal_notes=?, show_signup_button=?, signup_embed=?, show_on_homepage=?, updated_at=NOW(), updated_by=? WHERE id=?');
+                                    $stmt->execute([$title, $date, $end_date, $time ?: null, $time_end ?: null, $description, $eventSummary ?: null, $meerInfo ?: null, $infoLink ?: null, $imageName, $galleryJson, $documentsJson, $location ?: null, $hardwareRequest ?: null, $staffPresent ?: null, $targetAudience ?: null, $internalNotes ?: null, $showSignupButton, $signupEmbed ?: null, $showOnHomepage, $currentUser, $id]);
+                                    audit_log($pdo, 'update', 'events', $id, 'path=agenda_edit; fields=' . implode(',', $changedFields), $currentUser);
+                                    $pdo->commit();
+
+                                    // Remove old files only after the database update commits.
+                                    if (!empty($upload['name']) && $oldImage && file_exists(__DIR__ . '/uploads/' . $oldImage)) {
+                                        unlink(__DIR__ . '/uploads/' . $oldImage);
+                                    }
+                                    if ($removeImage && $oldImage && file_exists(__DIR__ . '/uploads/' . $oldImage)) {
+                                        unlink(__DIR__ . '/uploads/' . $oldImage);
+                                    }
+                                    foreach (array_merge($removeGallery, $removeDocuments) as $removedFile) {
+                                        $removedPath = __DIR__ . '/uploads/' . $removedFile;
+                                        if (is_file($removedPath)) {
+                                            unlink($removedPath);
+                                        }
+                                    }
+                                    header('Location: admin.php?page=agenda&ok=update');
+                                    exit;
+                                }
+                            } catch (Exception $error) {
+                                if ($pdo->inTransaction()) {
+                                    $pdo->rollBack();
+                                }
+                                cleanupNewEventUploads($newUploads);
+                                throw $error;
                             }
                         }
-                        foreach ($removeDocuments as $documentFile) {
-                            $documentPath = __DIR__ . '/uploads/' . $documentFile;
-                            if (file_exists($documentPath)) {
-                                @unlink($documentPath);
-                            }
-                        }
-                        header('Location: admin.php?page=agenda&ok=update');
-                        exit;
                     }
                 }
             }
@@ -1058,7 +1137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             $stmt = $pdo->prepare(
-                'SELECT id, title, date, end_date, time, time_end, description, location, image, 
+                'SELECT id, title, date, end_date, time, time_end, description, location, image, info_link, event_gallery,
                         created_by, target_audience, internal_notes, approval_status, approval_feedback,
                     meer_info, event_summary, signup_embed, show_signup_button, show_on_homepage,
                     event_documents,
@@ -1069,6 +1148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $item = $stmt->fetch();
 
             if ($item) {
+                $item['edit_version'] = eventEditVersion($item);
                 echo json_encode([
                     'success' => true,
                     'item' => $item
@@ -1108,15 +1188,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $feedback = sanitizeEditorBlockInput($_POST['approval_feedback'] ?? '');
 
         try {
-            $stmt = $pdo->prepare('SELECT id, image FROM events WHERE id = ?');
-            $stmt->execute([$itemId]);
-            $event = $stmt->fetch();
+            $event = beginVersionCheckedEventUpdate(
+                $pdo,
+                $itemId,
+                $_POST['approval_edit_version'] ?? '',
+                'pending'
+            );
 
-            if ($event) {
+            if ($event === false) {
+                $message = 'Opslaan is geblokkeerd omdat veilige versiecontrole niet beschikbaar is. Neem contact op met de websitebeheerder.';
+            } elseif (!$event) {
+                audit_log($pdo, 'conflict', 'events', $itemId, 'path=approval_review; reason=stale_form', $currentUser);
+                $message = 'Dit kalenderitem is gewijzigd, verwijderd of al beoordeeld. Herlaad de pagina voordat je het opnieuw bewerkt.';
+            } else {
                 // Update with edited data - ALL fields
                 $stmt = $pdo->prepare(
-                    'UPDATE events SET 
-                        title = ?, date = ?, end_date = ?, time = ?, time_end = ?, 
+                    'UPDATE events SET
+                        title = ?, date = ?, end_date = ?, time = ?, time_end = ?,
                         location = ?, hardware_request = ?, staff_present = ?, description = ?, meer_info = ?, event_summary = ?,
                         target_audience = ?, internal_notes = ?, signup_embed = ?,
                         show_signup_button = ?, show_on_homepage = ?,
@@ -1145,13 +1233,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $feedback ?: null,
                     $itemId
                 ]);
-                audit_log($pdo, 'approve', 'events', $itemId, 'Status changed to approved. Full event edited by admin.', $currentUser);
+                audit_log($pdo, 'approve', 'events', $itemId, 'path=approval_review; status=approved; fields=event_content', $currentUser);
+                $pdo->commit();
                 header('Location: admin.php?page=goedkeuren&ok=approve');
                 exit;
-            } else {
-                $message = 'Item niet gevonden.';
             }
         } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $message = 'Fout bij goedkeuren: ' . $e->getMessage();
         }
     } elseif ($action === 'approve_item' && !empty($_POST['item_id'])) {
@@ -1194,11 +1284,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $feedback = sanitizeEditorBlockInput($_POST['approval_feedback'] ?? '');
 
         try {
-            $stmt = $pdo->prepare('SELECT id, title, created_by FROM events WHERE id = ?');
-            $stmt->execute([$itemId]);
-            $event = $stmt->fetch();
+            $event = beginVersionCheckedEventUpdate(
+                $pdo,
+                $itemId,
+                $_POST['approval_edit_version'] ?? '',
+                'pending'
+            );
 
-            if ($event) {
+            if ($event === false) {
+                $message = 'Opslaan is geblokkeerd omdat veilige versiecontrole niet beschikbaar is. Neem contact op met de websitebeheerder.';
+            } elseif (!$event) {
+                audit_log($pdo, 'conflict', 'events', $itemId, 'path=approval_reject; reason=stale_form', $currentUser);
+                $message = 'Dit kalenderitem is gewijzigd, verwijderd of al beoordeeld. Herlaad de pagina voordat je het opnieuw bewerkt.';
+            } else {
                 // Update status to rejected, but save edited fields for onderzoeker to see edits + feedback
                 $stmt = $pdo->prepare(
                     'UPDATE events SET 
@@ -1231,7 +1329,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $feedback,
                     $itemId
                 ]);
-                audit_log($pdo, 'reject', 'events', $itemId, 'Status changed to rejected. Feedback: ' . substr($feedback, 0, 100), $currentUser);
+                audit_log($pdo, 'reject', 'events', $itemId, 'path=approval_reject; status=rejected; fields=event_content', $currentUser);
+                $pdo->commit();
                 
                 // Send rejection email to requester
                 if (!empty($event['created_by'])) {
@@ -1245,10 +1344,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 header('Location: admin.php?page=goedkeuren&ok=reject');
                 exit;
-            } else {
-                $message = 'Item niet gevonden.';
             }
         } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $message = 'Fout bij afkeuren: ' . $e->getMessage();
         }
     } elseif ($action === 'get_request_details' && !empty($_POST['request_id'])) {
@@ -1258,7 +1358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             $stmt = $pdo->prepare(
-                'SELECT id, title, date, end_date, time, time_end, description, location, image, 
+                'SELECT id, title, date, end_date, time, time_end, description, location, image, info_link, event_gallery,
                         approval_status, approval_feedback, meer_info, event_summary, target_audience,
                     internal_notes, signup_embed, show_signup_button, show_on_homepage,
                     event_documents,
@@ -1269,6 +1369,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $item = $stmt->fetch();
 
             if ($item) {
+                $item['edit_version'] = eventEditVersion($item);
                 echo json_encode([
                     'success' => true,
                     'item' => $item
@@ -1330,33 +1431,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ? json_encode($documentNames, JSON_UNESCAPED_SLASHES)
                         : null;
 
-                $stmt = $pdo->prepare(
-                    'UPDATE events SET 
-                        title = ?, date = ?, end_date = ?, time = ?, time_end = ?, 
-                        location = ?, hardware_request = ?, staff_present = ?, description = ?, meer_info = ?, event_summary = ?,
-                        target_audience = ?, internal_notes = ?, signup_embed = ?, event_documents = ?,
-                        show_signup_button = ?, show_on_homepage = ?,
-                        approval_status = "pending", approved_by = NULL, approval_feedback = NULL
-                     WHERE id = ?'
-                );
-                $stmt->execute([
-                    $title, $date, $end_date ?: null, $time ?: null, $time_end ?: null,
-                    $location, $hardware_request ?: null, $staff_present ?: null, $description, $meer_info ?: null, $event_summary ?: null,
-                    $target_audience ?: null, $signup_embed ?: null,
-                    $show_signup_button, $show_on_homepage,
-                    $requestId
-                ]);
-                foreach ($removeDocuments as $documentFile) {
-                    $documentPath = __DIR__ . '/uploads/' . $documentFile;
-                    if (file_exists($documentPath)) {
-                        @unlink($documentPath);
+                    $event = beginVersionCheckedEventUpdate(
+                        $pdo,
+                        $requestId,
+                        $_POST['edit_version'] ?? '',
+                        'rejected',
+                        $currentUser
+                    );
+                    if ($event === false) {
+                        cleanupNewEventUploads($documentUpload['names'] ?? []);
+                        $message = 'Opnieuw indienen is geblokkeerd omdat veilige versiecontrole niet beschikbaar is. Neem contact op met de websitebeheerder.';
+                    } elseif (!$event) {
+                        cleanupNewEventUploads($documentUpload['names'] ?? []);
+                        audit_log($pdo, 'conflict', 'events', $requestId, 'path=request_resubmit; reason=stale_form', $currentUser);
+                        $message = 'Deze aanvraag is sinds het openen gewijzigd. Je wijzigingen zijn niet opgeslagen. Herlaad de aanvraag en probeer opnieuw.';
+                    } else {
+                        $stmt = $pdo->prepare(
+                            'UPDATE events SET
+                                title = ?, date = ?, end_date = ?, time = ?, time_end = ?,
+                                location = ?, hardware_request = ?, staff_present = ?, description = ?, meer_info = ?, event_summary = ?,
+                                target_audience = ?, internal_notes = ?, signup_embed = ?, event_documents = ?,
+                                show_signup_button = ?, show_on_homepage = ?,
+                                approval_status = "pending", approved_by = NULL, approval_feedback = NULL
+                             WHERE id = ?'
+                        );
+                        $stmt->execute([
+                            $title, $date, $end_date ?: null, $time ?: null, $time_end ?: null,
+                            $location, $hardware_request ?: null, $staff_present ?: null, $description, $meer_info ?: null, $event_summary ?: null,
+                            $target_audience ?: null, $internal_notes ?: null, $signup_embed ?: null, $documentsJson,
+                            $show_signup_button, $show_on_homepage,
+                            $requestId
+                        ]);
+                        audit_log($pdo, 'resubmit', 'events', $requestId, 'path=request_resubmit; status=pending; fields=event_content', $currentUser);
+                        $pdo->commit();
+                        foreach ($removeDocuments as $documentFile) {
+                            $documentPath = __DIR__ . '/uploads/' . $documentFile;
+                            if (is_file($documentPath)) {
+                                unlink($documentPath);
+                            }
+                        }
+                        header('Location: admin.php?page=aanvragen&ok=resubmit');
+                        exit;
                     }
                 }
-                audit_log($pdo, 'resubmit', 'events', $requestId, 'Request resubmitted by onderzoeker after rejection', $currentUser);
-                header('Location: admin.php?page=aanvragen&ok=resubmit');
-                exit;
-                }
             } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 $message = 'Fout bij opnieuw indienen: ' . $e->getMessage();
             }
         } else {
@@ -1662,6 +1783,9 @@ if (!empty($_GET['edit'])) {
     $stmt = $pdo->prepare('SELECT * FROM events WHERE id = ?');
     $stmt->execute([$id]);
     $editEvent = $stmt->fetch();
+    if ($editEvent) {
+        $editEvent['edit_version'] = eventEditVersion($editEvent);
+    }
 }
 
 // Edit page mode
@@ -2177,6 +2301,7 @@ if ($page === 'users') {
                                 <h3 class="font-semibold text-lg">Bewerk Evenement</h3>
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="id" value="<?php echo (int)$editEvent['id']; ?>">
+                                <input type="hidden" name="edit_version" value="<?php echo htmlspecialchars($editEvent['edit_version'], ENT_QUOTES, 'UTF-8'); ?>">
 
                                 <div>
                                     <label class="form-label">Titel</label>
@@ -3096,6 +3221,7 @@ if ($page === 'users') {
                                 <form method="POST" id="approval-form">
                                     <input type="hidden" name="action" value="approve_with_review">
                                     <input type="hidden" name="item_id" id="approval-item-id">
+                                    <input type="hidden" name="approval_edit_version" id="approval-edit-version">
 
                                     <!-- Event Details (Preview) -->
                                     <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
@@ -3254,6 +3380,7 @@ if ($page === 'users') {
 
                                     const item = data.item;
                                     document.getElementById('approval-item-id').value = itemId;
+                                    document.getElementById('approval-edit-version').value = item.edit_version || '';
                                     document.getElementById('approval-modal-title').textContent = 'Details & Beoordeling - ' + itemTitle;
 
                                     // Basic fields
@@ -3393,6 +3520,7 @@ if ($page === 'users') {
                             const fields = {
                                 'action': action === 'reject' ? 'reject_item' : 'approve_with_review',
                                 'item_id': itemId,
+                                'approval_edit_version': document.getElementById('approval-edit-version').value,
                                 'approval_title': document.getElementById('approval-title-input').value,
                                 'approval_date': document.getElementById('approval-date-input').value,
                                 'approval_end_date': document.getElementById('approval-end-date-input').value,
@@ -3678,6 +3806,7 @@ if ($page === 'users') {
                                 <form method="POST" id="edit-request-form" enctype="multipart/form-data">
                                     <input type="hidden" name="action" value="resubmit_request">
                                     <input type="hidden" name="request_id" id="edit-request-id">
+                                    <input type="hidden" name="edit_version" id="edit-request-version">
 
                                     <!-- Admin Feedback Section -->
                                     <div id="feedback-section" style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; display: none;">
@@ -3823,6 +3952,7 @@ if ($page === 'users') {
 
                                     const item = data.item;
                                     document.getElementById('edit-request-id').value = requestId;
+                                    document.getElementById('edit-request-version').value = item.edit_version || '';
                                     document.getElementById('edit-request-title').textContent = 'Aanvraag Aanpassen - ' + requestTitle;
 
                                     document.getElementById('edit-title-input').value = item.title || '';

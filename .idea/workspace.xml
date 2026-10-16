@@ -7,18 +7,9 @@
     <option name="selectedModelId" value="auto" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="40eddd61-eef5-4b26-93ed-e0e08ad9a623" name="Changes" comment="Admin panel image button fix &amp; images zijn required">
+    <list default="true" id="40eddd61-eef5-4b26-93ed-e0e08ad9a623" name="Changes" comment="Linkedin nieuws tekst bevat hetzelfde lettertype">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin.php" beforeDir="false" afterPath="$PROJECT_DIR$/admin.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agenda.php" beforeDir="false" afterPath="$PROJECT_DIR$/agenda.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.php" beforeDir="false" afterPath="$PROJECT_DIR$/db.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/event-detail.php" beforeDir="false" afterPath="$PROJECT_DIR$/event-detail.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/event.php" beforeDir="false" afterPath="$PROJECT_DIR$/event.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/helpers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inschrijven.php" beforeDir="false" afterPath="$PROJECT_DIR$/inschrijven.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/terugblikken.php" beforeDir="false" afterPath="$PROJECT_DIR$/terugblikken.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +20,21 @@
     <execution>
       <execution>
         <execution>
-          <execution />
+          <execution>
+            <execution>
+              <execution>
+                <execution>
+                  <execution>
+                    <execution>
+                      <execution>
+                        <execution />
+                      </execution>
+                    </execution>
+                  </execution>
+                </execution>
+              </execution>
+            </execution>
+          </execution>
         </execution>
       </execution>
     </execution>
@@ -60,7 +65,7 @@
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="269" />
+    <option name="cachedIndexableFilesCount" value="271" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -84,23 +89,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0087681962487158" />
-      <entry key="MS500" value="1.6123374027364705" />
-      <entry key="S2" value="3.4292981370126308" />
-      <entry key="S5" value="5.846402417261101" />
-      <entry key="S10" value="8.621621716429752" />
-      <entry key="S30" value="12.243730888874435" />
-      <entry key="S60" value="13.521917586803616" />
-      <entry key="M2" value="14.24156687007174" />
-      <entry key="M5" value="15.776235387387434" />
-      <entry key="M10" value="20.558824804242953" />
-      <entry key="M15" value="24.828646022411412" />
-      <entry key="M30" value="32.21040748408561" />
-      <entry key="H1" value="37.73088638005668" />
-      <entry key="H2" value="41.115674089761754" />
-      <entry key="H4" value="42.99100864367601" />
-      <entry key="D1" value="44.655488919116884" />
-      <entry key="W1" value="44.95054172822846" />
+      <entry key="MS100" value="1.0328234765994693" />
+      <entry key="MS500" value="1.6778903632421387" />
+      <entry key="S2" value="3.8476860195049865" />
+      <entry key="S5" value="7.735478301108183" />
+      <entry key="S10" value="11.662863486249979" />
+      <entry key="S30" value="16.459742800918598" />
+      <entry key="S60" value="18.109776808716138" />
+      <entry key="M2" value="19.130554641767898" />
+      <entry key="M5" value="23.418291812577223" />
+      <entry key="M10" value="32.595517342886154" />
+      <entry key="M15" value="39.55283152294116" />
+      <entry key="M30" value="53.06546117575175" />
+      <entry key="H1" value="69.83928342784908" />
+      <entry key="H2" value="87.67460489157851" />
+      <entry key="H4" value="101.88895261215058" />
+      <entry key="D1" value="118.12921089258838" />
+      <entry key="W1" value="121.43257882461943" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -122,23 +127,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9678513448666082" />
-      <entry key="MS500" value="1.6011076805976097" />
-      <entry key="S2" value="3.423979125660711" />
-      <entry key="S5" value="5.841165811911833" />
-      <entry key="S10" value="8.616564625286868" />
-      <entry key="S30" value="12.240865169104028" />
-      <entry key="S60" value="13.520267266822298" />
-      <entry key="M2" value="14.240671198201868" />
-      <entry key="M5" value="15.775362815938545" />
-      <entry key="M10" value="20.55734180340599" />
-      <entry key="M15" value="24.827028402269065" />
-      <entry key="M30" value="32.20905555663395" />
-      <entry key="H1" value="37.73000773217827" />
-      <entry key="H2" value="41.115172711461355" />
-      <entry key="H4" value="42.99074077647141" />
-      <entry key="D1" value="44.65544173466293" />
-      <entry key="W1" value="44.950534923288785" />
+      <entry key="MS100" value="1.0043600798384797" />
+      <entry key="MS500" value="1.667451516087645" />
+      <entry key="S2" value="3.8414963573948637" />
+      <entry key="S5" value="7.73067544799105" />
+      <entry key="S10" value="11.65928731191961" />
+      <entry key="S30" value="16.458068299272018" />
+      <entry key="S60" value="18.108856078692188" />
+      <entry key="M2" value="19.13006618191612" />
+      <entry key="M5" value="23.418020065998846" />
+      <entry key="M10" value="32.595285838995466" />
+      <entry key="M15" value="39.5526152746529" />
+      <entry key="M30" value="53.06522602394205" />
+      <entry key="H1" value="69.83897374879457" />
+      <entry key="H2" value="87.67430033423905" />
+      <entry key="H4" value="101.88873125454225" />
+      <entry key="D1" value="118.129159810744" />
+      <entry key="W1" value="121.43257110044304" />
     </decayedShown>
   </component>
   <component name="PhpDebugGeneral" listening_started="true" />
@@ -232,7 +237,14 @@
       <workItem from="1781700453349" duration="951000" />
       <workItem from="1791376912915" duration="747000" />
       <workItem from="1791377748884" duration="7072000" />
-      <workItem from="1791530096656" duration="1883000" />
+      <workItem from="1791530096656" duration="5541000" />
+      <workItem from="1791537208313" duration="1850000" />
+      <workItem from="1791560270076" duration="1649000" />
+      <workItem from="1791563221870" duration="346000" />
+      <workItem from="1791797655766" duration="3000" />
+      <workItem from="1791797917426" duration="456000" />
+      <workItem from="1791802535891" duration="1074000" />
+      <workItem from="1791806082407" duration="1476000" />
     </task>
     <task id="LOCAL-00001" summary="Merge branch 'main' of origin">
       <option name="closed" value="true" />
@@ -282,7 +294,63 @@
       <option name="project" value="LOCAL" />
       <updated>1791379719275</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Pop up festival">
+      <option name="closed" value="true" />
+      <created>1791532905746</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1791532905747</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Footer adres toegevoegd">
+      <option name="closed" value="true" />
+      <created>1791534855871</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1791534855871</updated>
+    </task>
+    <task id="LOCAL-00009" summary="styling + pop up fix">
+      <option name="closed" value="true" />
+      <created>1791537225854</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1791537225854</updated>
+    </task>
+    <task id="LOCAL-00010" summary="nieuwe tekst revert niet naar oud fix">
+      <option name="closed" value="true" />
+      <created>1791539332449</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1791539332449</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Pop up cooldown 12 uur -&gt; 6 uur, homepage upcoming events eindtijd nu zichtbaar">
+      <option name="closed" value="true" />
+      <created>1791563505626</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1791563505626</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Pop up banner foto verandering">
+      <option name="closed" value="true" />
+      <created>1791806102413</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1791806102414</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Linkedin nieuws tekst bevat hetzelfde lettertype">
+      <option name="closed" value="true" />
+      <created>1791807109784</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1791807109784</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -296,7 +364,14 @@
     <MESSAGE value="Mobile en tablet admin panel veranderingen" />
     <MESSAGE value="locaties aanpassingen booking" />
     <MESSAGE value="Admin panel image button fix &amp; images zijn required" />
-    <option name="LAST_COMMIT_MESSAGE" value="Admin panel image button fix &amp; images zijn required" />
+    <MESSAGE value="Pop up festival" />
+    <MESSAGE value="Footer adres toegevoegd" />
+    <MESSAGE value="styling + pop up fix" />
+    <MESSAGE value="nieuwe tekst revert niet naar oud fix" />
+    <MESSAGE value="Pop up cooldown 12 uur -&gt; 6 uur, homepage upcoming events eindtijd nu zichtbaar" />
+    <MESSAGE value="Pop up banner foto verandering" />
+    <MESSAGE value="Linkedin nieuws tekst bevat hetzelfde lettertype" />
+    <option name="LAST_COMMIT_MESSAGE" value="Linkedin nieuws tekst bevat hetzelfde lettertype" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

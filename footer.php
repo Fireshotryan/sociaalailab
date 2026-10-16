@@ -13,8 +13,16 @@ $imgPrefix = ($scriptDir === $rootDir) ? 'images/' : '../images/';
             <img alt="Erasmus Universiteit" src="<?php echo $imgPrefix; ?>EUR.png">
             <img alt="Techniek College Rotterdam" src="<?php echo $imgPrefix; ?>TechniekCollegeRotterdam.png">
         </div>
+        <div class="footer-address">
+            <strong>Sociaal AI Lab Rotterdam</strong>
+            <a href="https://www.google.com/maps/search/?api=1&amp;query=Hillevliet%2090%2C%203074%20KD%20Rotterdam"
+               target="_blank"
+               rel="noopener noreferrer">
+                Hillevliet 90, 3074 KD Rotterdam
+            </a>
+        </div>
         <p class="copyright">
-            &copy; <?php echo date('Y'); ?> Sociaal AILab — Samen werken aan inclusieve AI. Alle rechten voorbehouden.
+            &copy; <?php echo date('Y'); ?> Sociaal AI Lab Rotterdam — Samen werken aan inclusieve AI. Alle rechten voorbehouden.
         </p>
     </div>
 </footer>

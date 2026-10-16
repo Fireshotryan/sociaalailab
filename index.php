@@ -8,7 +8,7 @@ $banner2 = 'images/banner_website_02.jpg';
 $banner3 = null;
 $banner4 = null;
 $linkedinRssUrl = 'https://rss.app/feeds/dV7LODC8P6clPQvr.xml';
-$festivalPopupImage = 'images/banner_website_02.jpg';
+$festivalPopupImage = 'images/sociaal-ai-popup.jpg';
 $festivalEvent = null;
 
 function fetchHomepageLinkedInPosts(string $url, int $limit = 8): array
@@ -380,8 +380,12 @@ include __DIR__ . '/navbar.php';
         <div class="space-y-3">
             <div class="flex items-center space-x-3">
                 <i class="fa-regular fa-calendar text-[#00811F] ml-[2px] text-3xl"></i>
-                <?php $dateDisplay = formatEventDateWithWeekdayDisplay($event['date']); $timeDisplay = $event['time'] ? formatEventTimeDisplay($event['time']) : ''; ?>
-                <p class="text-gray-700"><strong> Wanneer:</strong> <?php echo htmlspecialchars($dateDisplay); ?><?php if ($timeDisplay) echo ' - ' . htmlspecialchars($timeDisplay) . ' uur'; ?></p>
+                <?php
+                $dateDisplay = formatEventDateWithWeekdayDisplay($event['date']);
+                $timeDisplay = !empty($event['time']) ? formatEventTimeDisplay($event['time']) : '';
+                $endTimeDisplay = !empty($event['time_end']) ? formatEventTimeDisplay($event['time_end']) : '';
+                ?>
+                <p class="text-gray-700"><strong> Wanneer:</strong> <?php echo htmlspecialchars($dateDisplay); ?><?php if ($timeDisplay): ?> - <?php echo htmlspecialchars($timeDisplay); ?><?php if ($endTimeDisplay): ?> – <?php echo htmlspecialchars($endTimeDisplay); ?><?php endif; ?> uur<?php endif; ?></p>
             </div>
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-location-dot text-[#00811F] ml-1 text-3xl"></i>
@@ -462,7 +466,7 @@ include __DIR__ . '/navbar.php';
                 <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="LinkedIn bericht" class="homepage-news-card-img" loading="lazy">
             <?php endif; ?>
             <div class="homepage-news-card-content">
-                <h3 class="homepage-news-card-title"><?php echo htmlspecialchars($post['title'] ?: 'SociaalAI Lab Update'); ?></h3>
+                <h3 class="homepage-news-card-title"><?php echo formatHomepageNewsText($post['title'] ?: 'SociaalAI Lab Update'); ?></h3>
                 <?php if (!empty($post['date'])): ?>
                     <div class="homepage-news-card-meta"><i class="fa-regular fa-calendar mr-1"></i><?php echo htmlspecialchars($post['date']); ?></div>
                 <?php endif; ?>
@@ -470,7 +474,7 @@ include __DIR__ . '/navbar.php';
                     <?php
                     $postText = (string)($post['text'] ?? '');
                     $trimmedText = editorPreviewText($postText, 180);
-                    echo nl2br(htmlspecialchars($trimmedText));
+                    echo nl2br(formatHomepageNewsText($trimmedText));
                     ?>
                 </p>
                 <a href="<?php echo htmlspecialchars($post['url']); ?>" target="_blank" rel="noopener" class="homepage-news-card-link">
@@ -515,7 +519,7 @@ include __DIR__ . '/navbar.php';
 >
     <section class="festival-promo-dialog" role="dialog" aria-modal="true" aria-labelledby="festival-promo-title">
         <button type="button" class="festival-promo-close" aria-label="Pop-up sluiten">&times;</button>
-        <img class="festival-promo-image" src="<?php echo htmlspecialchars($festivalPopupImage); ?>" alt="Bezoekers tijdens een bijeenkomst van Sociaal AI Lab Rotterdam">
+        <img class="festival-promo-image" src="<?php echo htmlspecialchars($festivalPopupImage); ?>" alt="Sociaal AI Lab Rotterdam Festival op dinsdag 24 november 2026, van 14:30 tot 19:30, Hillevliet 90 in Rotterdam.">
         <div class="festival-promo-content">
             <p class="festival-promo-date">
                 📅 <?php echo htmlspecialchars(formatEventDateWithWeekdayDisplay($festivalEvent['date'])); ?>
@@ -637,7 +641,7 @@ include __DIR__ . '/navbar.php';
         const eventEndTimestamp = endTimestamp;
         const previousOverflow = document.body.style.overflow;
         const lastShownKey = 'sociaalAiFestivalPopupLastShown';
-        const dayMs = 24 * 60 * 60 * 1000;
+        const cooldownMs = 6 * 60 * 60 * 1000;
         let showTimer;
         let countdownInterval;
         let isVisible = false;
@@ -738,7 +742,7 @@ include __DIR__ . '/navbar.php';
         } catch (error) {
             // Continue without repeat suppression when browser storage is unavailable.
         }
-        if (lastShownAt && Date.now() - lastShownAt < dayMs) return;
+        if (lastShownAt && Date.now() - lastShownAt < cooldownMs) return;
 
         function showModal() {
             if (!modal.isConnected || !updateCountdown()) return;

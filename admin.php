@@ -2387,8 +2387,8 @@ if ($page === 'users') {
                                 </div>
 
                                 <div>
-                                    <label class="form-label">Wie van SociaalAI Lab zijn erbij? (optioneel)</label>
-                                    <textarea name="staff_present" rows="3" class="form-textarea" placeholder="Bijv. Naam 1, Naam 2"><?php echo htmlspecialchars($editEvent['staff_present'] ?? ''); ?></textarea>
+                                    <label class="form-label" for="edit-event-staff-present">Wie van SociaalAI Lab zijn erbij? (optioneel)</label>
+                                    <textarea name="staff_present" id="edit-event-staff-present" rows="3" class="form-textarea" placeholder="Bijv. Naam 1, Naam 2"><?php echo htmlspecialchars($editEvent['staff_present'] ?? ''); ?></textarea>
                                     <p class="text-xs text-gray-500 mt-2">Mag leeg blijven.</p>
                                 </div>
 
@@ -2585,8 +2585,8 @@ if ($page === 'users') {
                                 </div>
 
                                 <div>
-                                    <label class="form-label">Wie van SociaalAI Lab zijn erbij? (optioneel)</label>
-                                    <textarea name="staff_present" rows="3" class="form-textarea" placeholder="Bijv. Naam 1, Naam 2"><?php echo htmlspecialchars($_POST['staff_present'] ?? ''); ?></textarea>
+                                    <label class="form-label" for="create-event-staff-present">Wie van SociaalAI Lab zijn erbij? (optioneel)</label>
+                                    <textarea name="staff_present" id="create-event-staff-present" rows="3" class="form-textarea" placeholder="Bijv. Naam 1, Naam 2"><?php echo htmlspecialchars($_POST['staff_present'] ?? ''); ?></textarea>
                                     <p class="text-xs text-gray-500 mt-2">Mag leeg blijven.</p>
                                 </div>
 
@@ -3286,7 +3286,7 @@ if ($page === 'users') {
                                         </div>
 
                                         <div style="margin-bottom: 1rem;">
-                                            <label style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.25rem 0; display: block;"><strong>Wie van SociaalAI Lab zijn erbij? (optioneel):</strong></label>
+                                            <label for="approval-staff-present-input" style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.25rem 0; display: block;"><strong>Wie van SociaalAI Lab zijn erbij? (optioneel):</strong></label>
                                             <textarea name="approval_staff_present" id="approval-staff-present-input" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; min-height: 70px; font-family: inherit;"></textarea>
                                         </div>
 
@@ -3878,7 +3878,7 @@ if ($page === 'users') {
                                         </div>
 
                                         <div style="margin-bottom: 1rem;">
-                                            <label style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.25rem 0; display: block;"><strong>Wie van SociaalAI Lab zijn erbij? (optioneel):</strong></label>
+                                            <label for="edit-staff-present-input" style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.25rem 0; display: block;"><strong>Wie van SociaalAI Lab zijn erbij? (optioneel):</strong></label>
                                             <textarea name="edit_staff_present" id="edit-staff-present-input" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; min-height: 70px; font-family: inherit;"></textarea>
                                         </div>
 

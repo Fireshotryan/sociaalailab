@@ -285,6 +285,34 @@ form {
     gap: 1.2rem;
 }
 
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.form-field-label,
+.form-fieldset-legend {
+    color: #00811F;
+    font-weight: 600;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    width: 100%;
+}
+
+.form-fieldset {
+    min-width: 0;
+    border: 0;
+}
+
+.form-fieldset-legend {
+    margin-bottom: 0.75rem;
+}
+
 input,
 select,
 textarea {
@@ -344,8 +372,29 @@ input::placeholder {
     gap: 1rem;
 }
 
-.row input {
+.row > .form-field {
     flex: 1;
+}
+
+.hardware-controls {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.hardware-choice {
+    flex: 1 1 220px;
+}
+
+.hardware-quantity {
+    flex: 0 1 100px;
+}
+
+.hardware-add-button {
+    width: auto;
+    padding: 0.85rem 1.5rem;
 }
 
 /* CHIPS (Hardware) */

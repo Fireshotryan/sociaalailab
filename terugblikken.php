@@ -95,7 +95,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main class="pt-8 sm:pt-12">
+<main id="main-content" tabindex="-1" class="pt-8 sm:pt-12">
     <div id="agenda-terugblik-switch" class="mobile flex items-center justify-center gap-1" style="scroll-margin-top: 110px;">
         <div class="agenda bg-white p-6 shadow-lg max-w-xl mt-6 w-full border-r text-center">
             <a href="agenda.php#agenda-terugblik-switch">

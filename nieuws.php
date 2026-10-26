@@ -281,7 +281,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main>
+<main id="main-content" tabindex="-1">
     <!-- Nieuws Header -->
     <section class="bg-white shadow-lg p-8 max-w-6xl mx-auto my-12">
         <div class="mb-8">

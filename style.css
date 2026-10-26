@@ -4380,6 +4380,23 @@ section:focus-visible,
     outline-offset: 2px;
 }
 
+.skip-link {
+    position: fixed;
+    top: 0;
+    left: 1rem;
+    z-index: 10001;
+    padding: 0.75rem 1rem;
+    background: #fff;
+    color: #000;
+    transform: translateY(calc(-100% - 1px));
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+    outline: 3px solid #00811F;
+    outline-offset: 2px;
+}
+
 .watdoenwe-page .grid>.bg-white:focus {
     outline: 3px solid #00811F;
     outline-offset: 2px;

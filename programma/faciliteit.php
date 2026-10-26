@@ -55,7 +55,7 @@ include __DIR__ . '/../navbar.php';
 ?>
 
 <!-- Pagina content -->
-<main class="watdoenwe-page">
+<main id="main-content" tabindex="-1" class="watdoenwe-page">
     <?php
     // Fetch page blocks from database
     $pageBlocks = [];

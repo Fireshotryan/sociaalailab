@@ -59,7 +59,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main class="ons-team-page watdoenwe-page">
+<main id="main-content" tabindex="-1" class="ons-team-page watdoenwe-page">
     <section class="bg-white shadow-lg p-8 max-w-6xl mx-auto my-12 text-padding ons-team-intro" tabindex="0">
         <h2 class="text-2xl md:text-3xl font-semibold mb-4 text-gray-900">Ons team</h2>
         <div class="text-gray-700 leading-relaxed">Maak kennis met de mensen die werken in het Lab: het team achter SociaalAI Lab Rotterdam.</div>

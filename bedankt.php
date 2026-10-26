@@ -19,7 +19,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main class="flex-1">
+<main id="main-content" tabindex="-1" class="flex-1">
     <section class="bg-white shadow-lg p-8 max-w-6xl mx-auto my-12">
         <div class="container sociaalai-contact-wrap">
             <h1 class="font-bold text-3xl mb-4 text-[#00811F]">Bedankt voor je bericht!</h1>

@@ -76,7 +76,7 @@ include __DIR__ . '/navbar.php';
 
 ?>
 
-<main>
+<main id="main-content" tabindex="-1">
     <section class="bg-white shadow-lg rounded-2xl p-8 sm:p-10 w-[92%] max-w-md mx-auto my-12">
         <h2 class="text-2xl md:text-3xl font-semibold mb-4 text-gray-900">Wachtwoord vergeten</h2>
         <?php if ($message): ?>

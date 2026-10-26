@@ -3,6 +3,7 @@ if (!isset($navPrefix)) {
     $navPrefix = '';
 }
 ?>
+<a class="skip-link" href="#main-content">Ga naar inhoud</a>
 <nav class="navbar onest-font">
     <div class="nav-container">
         <button type="button" id="mobile-menu-toggle" class="hamburger" aria-label="Toggle navigation" aria-controls="nav-menu" aria-expanded="false">

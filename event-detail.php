@@ -192,7 +192,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main>
+<main id="main-content" tabindex="-1">
     <section class="bg-white shadow-lg p-8 max-w-4xl mx-auto my-12" tabindex="0">
         <?php if (!$event): ?>
             <h1 class="text-2xl font-semibold mb-3 text-gray-900">Evenement niet gevonden</h1>

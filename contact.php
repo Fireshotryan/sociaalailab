@@ -68,7 +68,7 @@ include __DIR__ . '/navbar.php';
 
 
 
-<main>
+<main id="main-content" tabindex="-1">
     <?php
     foreach ($pageBlocks as $block):
         $metaArr = $block['meta'] ? json_decode($block['meta'], true) : [];

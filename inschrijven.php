@@ -93,7 +93,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main class="min-h-[60vh] flex items-start justify-center px-4 sm:px-6 py-12 sm:py-16">
+<main id="main-content" tabindex="-1" class="min-h-[60vh] flex items-start justify-center px-4 sm:px-6 py-12 sm:py-16">
     <section class="bg-white shadow-xl p-6 sm:p-8 max-w-md w-full mx-auto rounded-lg">
         <?php if (!$event): ?>
             <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">Evenement niet gevonden</h1>

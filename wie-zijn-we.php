@@ -59,7 +59,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main class="wie-zijn-we-page">
+<main id="main-content" tabindex="-1" class="wie-zijn-we-page">
     <?php
     $index = 0;
     foreach ($pageBlocks as $block):

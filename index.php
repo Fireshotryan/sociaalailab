@@ -238,7 +238,7 @@ $navPrefix = '';
 include __DIR__ . '/navbar.php';
 ?>
 
-<main>
+<main id="main-content" tabindex="-1">
     
     <?php if ($welcomeBlock): ?>
     <?php

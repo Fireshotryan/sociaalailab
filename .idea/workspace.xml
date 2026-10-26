@@ -8,8 +8,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="40eddd61-eef5-4b26-93ed-e0e08ad9a623" name="Changes" comment="Linkedin nieuws tekst bevat hetzelfde lettertype">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agenda.php" beforeDir="false" afterPath="$PROJECT_DIR$/agenda.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bedankt.php" beforeDir="false" afterPath="$PROJECT_DIR$/bedankt.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contact.php" beforeDir="false" afterPath="$PROJECT_DIR$/contact.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db.php" beforeDir="false" afterPath="$PROJECT_DIR$/db.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/event-detail.php" beforeDir="false" afterPath="$PROJECT_DIR$/event-detail.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/event.php" beforeDir="false" afterPath="$PROJECT_DIR$/event.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/forgot_password.php" beforeDir="false" afterPath="$PROJECT_DIR$/forgot_password.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inschrijven.php" beforeDir="false" afterPath="$PROJECT_DIR$/inschrijven.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login.php" beforeDir="false" afterPath="$PROJECT_DIR$/login.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/navbar.php" beforeDir="false" afterPath="$PROJECT_DIR$/navbar.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nieuws.php" beforeDir="false" afterPath="$PROJECT_DIR$/nieuws.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ons-team.php" beforeDir="false" afterPath="$PROJECT_DIR$/ons-team.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/over.php" beforeDir="false" afterPath="$PROJECT_DIR$/over.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/programma/actie.php" beforeDir="false" afterPath="$PROJECT_DIR$/programma/actie.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/programma/faciliteit.php" beforeDir="false" afterPath="$PROJECT_DIR$/programma/faciliteit.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/programma/kennis.php" beforeDir="false" afterPath="$PROJECT_DIR$/programma/kennis.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reset_password.php" beforeDir="false" afterPath="$PROJECT_DIR$/reset_password.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/terugblikken.php" beforeDir="false" afterPath="$PROJECT_DIR$/terugblikken.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/verantwoord-ai.php" beforeDir="false" afterPath="$PROJECT_DIR$/verantwoord-ai.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wie-zijn-we.php" beforeDir="false" afterPath="$PROJECT_DIR$/wie-zijn-we.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,7 +49,13 @@
                   <execution>
                     <execution>
                       <execution>
-                        <execution />
+                        <execution>
+                          <execution>
+                            <execution>
+                              <execution />
+                            </execution>
+                          </execution>
+                        </execution>
                       </execution>
                     </execution>
                   </execution>
@@ -65,7 +93,6 @@
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="271" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -79,7 +106,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/perzikapple/sociaalailab.git&quot;,
+    &quot;url&quot;: &quot;https://github.com/jaivyyy/sociaalailab&quot;,
     &quot;accountId&quot;: &quot;6b77e8f5-a1df-4b03-b755-a3f4faa7f2b0&quot;
   }
 }</component>
@@ -245,6 +272,9 @@
       <workItem from="1791797917426" duration="456000" />
       <workItem from="1791802535891" duration="1074000" />
       <workItem from="1791806082407" duration="1476000" />
+      <workItem from="1792146571260" duration="7000" />
+      <workItem from="1792146593917" duration="56000" />
+      <workItem from="1793005216760" duration="4546000" />
     </task>
     <task id="LOCAL-00001" summary="Merge branch 'main' of origin">
       <option name="closed" value="true" />

@@ -1387,8 +1387,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* MULTI-SELECT STAFF DROPDOWN */
 function toggleStaffDropdown() {
+    const trigger = document.getElementById('staffMultiSelectTrigger');
     const panel = document.getElementById('staffOptions');
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (!trigger || !panel) return;
+
+    const isOpen = !panel.hidden;
+    panel.hidden = isOpen;
+    trigger.setAttribute('aria-expanded', String(!isOpen));
+}
+
+function closeStaffDropdown(restoreFocus) {
+    const trigger = document.getElementById('staffMultiSelectTrigger');
+    const panel = document.getElementById('staffOptions');
+    if (!trigger || !panel || panel.hidden) return;
+
+    panel.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) trigger.focus();
 }
 
 function updateStaffTags() {
@@ -1410,8 +1425,13 @@ function updateStaffTags() {
 document.addEventListener('click', function(e) {
     const ms = document.getElementById('staffMultiSelect');
     if (ms && !ms.contains(e.target)) {
-        const panel = document.getElementById('staffOptions');
-        if (panel) panel.style.display = 'none';
+        closeStaffDropdown(false);
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeStaffDropdown(true);
     }
 });
 </script>
@@ -1424,13 +1444,13 @@ document.addEventListener('click', function(e) {
         <input type="hidden" name="staff_location_id" value="1">
         
             <div class="multi-select" id="staffMultiSelect">
-                <div class="multi-select-trigger" onclick="event.stopPropagation(); toggleStaffDropdown()">
-                    <div class="multi-select-tags" id="staffTags">
+                <button type="button" id="staffMultiSelectTrigger" class="multi-select-trigger" aria-expanded="false" aria-controls="staffOptions" onclick="toggleStaffDropdown()">
+                    <span class="multi-select-tags" id="staffTags">
                         <span class="placeholder">Selecteer personeelsleden</span>
-                    </div>
+                    </span>
                     <span class="dropdown-arrow">&#9660;</span>
-                </div>
-                <div class="multi-select-options" id="staffOptions" style="display: none;">
+                </button>
+                <div class="multi-select-options" id="staffOptions" hidden>
                     <?php foreach ($allStaffNameList as $name): ?>
                         <label class="multi-option">
                             <input type="checkbox" name="staff_names[]" value="<?= htmlspecialchars($name) ?>" onchange="updateStaffTags()">

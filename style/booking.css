@@ -650,10 +650,15 @@ input::placeholder {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    width: 100%;
     padding: 0.85rem 1rem;
     border-radius: 10px;
     border: 2px solid #dfe8f3;
     background: #f9fafb;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    appearance: none;
     cursor: pointer;
     transition: all 0.3s ease;
     min-height: 48px;
@@ -661,6 +666,11 @@ input::placeholder {
 
 .multi-select-trigger:hover {
     border-color: #00811F;
+}
+
+.multi-select-trigger:focus-visible {
+    outline: 2px solid #00811F;
+    outline-offset: 2px;
 }
 
 .multi-select-tags {

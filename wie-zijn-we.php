@@ -37,19 +37,19 @@ try {
 
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img class="" src="<?php echo htmlspecialchars($banner1); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img class="" src="<?php echo htmlspecialchars($banner2); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php if ($banner3): ?>
     <div class="banner banner-3">
-        <img class="" src="<?php echo htmlspecialchars($banner3); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
     <?php if ($banner4): ?>
     <div class="banner banner-4">
-        <img class="" src="<?php echo htmlspecialchars($banner4); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
 </div>
@@ -98,7 +98,7 @@ include __DIR__ . '/navbar.php';
                 }
                 ?>
                 <div class="wie-zijn-we-logo-wrap" style="<?php echo $imageStyle; ?>">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
             
@@ -122,7 +122,7 @@ include __DIR__ . '/navbar.php';
                 }
                 ?>
                 <div class="wie-zijn-we-logo-wrap" style="<?php echo $imageStyle; ?>">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
 
@@ -132,7 +132,7 @@ include __DIR__ . '/navbar.php';
                 $imageStyle = 'display: flex; flex-direction: column; gap: 1.5rem;';
                 ?>
                 <div style="<?php echo $imageStyle; ?>">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
         </section>

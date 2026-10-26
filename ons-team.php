@@ -37,19 +37,19 @@ try {
 
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img class="" src="<?php echo htmlspecialchars($banner1); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img class="" src="<?php echo htmlspecialchars($banner2); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php if ($banner3): ?>
     <div class="banner banner-3">
-        <img class="" src="<?php echo htmlspecialchars($banner3); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
     <?php if ($banner4): ?>
     <div class="banner banner-4">
-        <img class="" src="<?php echo htmlspecialchars($banner4); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
 </div>
@@ -84,7 +84,7 @@ include __DIR__ . '/navbar.php';
         ?>
         <article class="team-card bg-white shadow-lg" tabindex="0">
             <?php if ($hasImage): ?>
-            <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars(strip_tags((string)($block['title'] ?? 'Teamlid'))); ?>" class="team-photo" loading="lazy">
+            <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" class="team-photo" loading="lazy">
             <?php else: ?>
             <div class="team-photo-placeholder" aria-hidden="true"><?php echo htmlspecialchars(mb_strtoupper(mb_substr(trim(strip_tags((string)($block['title'] ?? '?'))), 0, 1))); ?></div>
             <?php endif; ?>

@@ -55,10 +55,10 @@ try {
 
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img class="" src="<?php echo htmlspecialchars($banner1); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img class="" src="<?php echo htmlspecialchars($banner2); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
 </div>
 
@@ -115,7 +115,7 @@ include __DIR__ . '/navbar.php';
         }
     ?>
         <?php if (!$hasText && $hasImage && !$shouldShowNumber): ?>
-            <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100vw !important; max-width: 100vw !important; height: auto; display: block; margin-left: calc(-50vw + 50%); position: relative; margin-top: 3rem; margin-bottom: 3rem;">
+            <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100vw !important; max-width: 100vw !important; height: auto; display: block; margin-left: calc(-50vw + 50%); position: relative; margin-top: 3rem; margin-bottom: 3rem;">
         <?php else: ?>
         <section class="bg-white shadow-lg p-8 max-w-6xl mx-auto my-12" style="<?php echo $sectionStyle; ?>">
             <?php if ($shouldShowNumber && $numberPosition === 'left' && $hasText): ?>
@@ -128,7 +128,7 @@ include __DIR__ . '/navbar.php';
             
             <?php if ($imagePosition === 'left' && $hasImage && !$shouldShowNumber): ?>
                 <div style="flex: 0 0 auto; max-width: 280px; width: 100%;">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
 
@@ -151,7 +151,7 @@ include __DIR__ . '/navbar.php';
 
             <?php if ($imagePosition === 'right' && $hasImage && !$shouldShowNumber): ?>
                 <div style="flex: 0 0 auto; max-width: 280px; width: 100%;">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
             
@@ -165,7 +165,7 @@ include __DIR__ . '/navbar.php';
             
             <?php if ($hasImage && $imagePosition === 'normal' && !$shouldShowNumber): ?>
                 <div style="width: 100%;">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
 

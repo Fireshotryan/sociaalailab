@@ -39,13 +39,13 @@ try {
 
 
 <div class="banner-wrapper">
-    <img src="<?php echo htmlspecialchars($banner1); ?>" alt="Banner 1" class="banner active w-full object-cover h-60 md:h-96">
-    <img src="<?php echo htmlspecialchars($banner2); ?>" alt="Banner 2" class="banner w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>" class="banner active w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>" class="banner w-full object-cover h-60 md:h-96">
     <?php if ($banner3): ?>
-    <img src="<?php echo htmlspecialchars($banner3); ?>" alt="Banner 3" class="banner w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>" class="banner w-full object-cover h-60 md:h-96">
     <?php endif; ?>
     <?php if ($banner4): ?>
-    <img src="<?php echo htmlspecialchars($banner4); ?>" alt="Banner 4" class="banner w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>" class="banner w-full object-cover h-60 md:h-96">
     <?php endif; ?>
 </div>
 
@@ -77,22 +77,22 @@ include __DIR__ . '/../navbar.php';
 
     <section class="text-block bg-white shadow-lg p-8 max-w-6xl mx-auto my-12">
         <div class="text-block-content">
-            <h3 class="text-2xl font-semibold mb-4 text-gray-900">Faciliteiten</h3>
+            <h1 class="text-2xl font-semibold mb-4 text-gray-900">Faciliteiten</h1>
             <div class="text-gray-700 leading-relaxed">Het SociaalAI Lab biedt verschillende faciliteiten om AI toegankelijk te maken voor iedereen in Rotterdam.</div>
         </div>
     </section>
 
-    <div id="watdoenwe-switch" style="scroll-margin-top: 110px;">
+    <nav id="watdoenwe-switch" style="scroll-margin-top: 110px;" aria-label="Programma's">
         <div class="watdoenwe-item">
-            <a href="kennis.php#watdoenwe-switch"><h1>Kennis & Vaardigheden</h1></a>
+            <a class="text-2xl font-semibold" href="kennis.php#watdoenwe-switch">Kennis &amp; Vaardigheden</a>
         </div>
         <div class="watdoenwe-item">
-            <a href="actie.php#watdoenwe-switch"><h1>Actie, Onderzoek & Ontwerp</h1></a>
+            <a class="text-2xl font-semibold" href="actie.php#watdoenwe-switch">Actie, Onderzoek &amp; Ontwerp</a>
         </div>
         <div class="watdoenwe-item">
-            <a href="faciliteit.php#watdoenwe-switch"><h1>Faciliteiten</h1></a>
+            <a class="text-2xl font-semibold" href="faciliteit.php#watdoenwe-switch" aria-current="page">Faciliteiten</a>
         </div>
-    </div>
+    </nav>
 
     <!-- Custom cards from database -->
     <?php if (!empty($cardBlocks)): ?>
@@ -141,7 +141,7 @@ include __DIR__ . '/../navbar.php';
                     <div class="green-highlight mb-3"><?php echo nl2br(htmlspecialchars($greenText)); ?></div>
                 <?php endif; ?>
                 <?php if (!empty($block['title'])): ?>
-                    <h3 class="text-lg font-semibold mb-2"><?php echo renderEditorInline($block['title']); ?></h3>
+                    <h2 class="text-lg font-semibold mb-2"><?php echo renderEditorInline($block['title']); ?></h2>
                 <?php endif; ?>
                 <?php if (!empty($block['body'])): ?>
                     <div class="mb-2 text-gray-700 text-sm"><?php echo renderEditorBlock($block['body']); ?></div>
@@ -164,7 +164,7 @@ include __DIR__ . '/../navbar.php';
                     ?>
                 <!-- Styling images -->
                     <div style="<?php echo $hasText ? 'margin-top: auto; width: 100%; max-width: 560px;' : 'width: 100%;'; ?>">
-                        <img src="<?php echo htmlspecialchars($imageSrc); ?>" alt="<?php echo htmlspecialchars($block['title'] ?? ''); ?>" class="watdoenwe-image-normal">
+                        <img src="<?php echo htmlspecialchars($imageSrc); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" class="watdoenwe-image-normal">
                     </div>
                 <?php endif; ?>
             </div>
@@ -274,5 +274,3 @@ setInterval(() => {
 
 </body>
 </html>
-
-

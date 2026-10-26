@@ -57,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-gradient-to-br from-[#00811F] to-[#b9eb34]">
     <div class="banner-wrapper relative">
-        <img src="<?php echo htmlspecialchars($banner1); ?>" alt="Banner 1" class="banner active h-60 md:h-96 w-full object-cover">
-        <img src="<?php echo htmlspecialchars($banner2); ?>" alt="Banner 2" class="banner h-60 md:h-96 w-full object-cover">
+        <img src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>" class="banner active h-60 md:h-96 w-full object-cover">
+        <img src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>" class="banner h-60 md:h-96 w-full object-cover">
         <?php if ($banner3): ?>
-        <img src="<?php echo htmlspecialchars($banner3); ?>" alt="Banner 3" class="banner h-60 md:h-96 w-full object-cover">
+        <img src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>" class="banner h-60 md:h-96 w-full object-cover">
         <?php endif; ?>
         <?php if ($banner4): ?>
-        <img src="<?php echo htmlspecialchars($banner4); ?>" alt="Banner 4" class="banner h-60 md:h-96 w-full object-cover">
+        <img src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>" class="banner h-60 md:h-96 w-full object-cover">
         <?php endif; ?>
     </div>
 

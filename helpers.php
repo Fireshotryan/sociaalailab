@@ -1,4 +1,47 @@
 <?php
+if (!function_exists('getPageImageAltText')) {
+    function getPageImageAltText(array $block): string {
+        $meta = json_decode((string)($block['meta'] ?? ''), true);
+        if (is_array($meta) && array_key_exists('image_alt', $meta)) {
+            return trim((string)$meta['image_alt']);
+        }
+
+        return trim(strip_tags((string)($block['title'] ?? '')));
+    }
+}
+
+if (!function_exists('getSiteBannerAltText')) {
+    function getSiteBannerAltText(PDO $pdo, int $bannerNumber, ?string $source): string {
+        $key = 'banner' . $bannerNumber . '_alt';
+        $stmt = $pdo->prepare('SELECT setting_value FROM settings WHERE setting_key = ?');
+        $stmt->execute([$key]);
+        $savedAlt = $stmt->fetchColumn();
+        if ($savedAlt !== false) {
+            return trim((string)$savedAlt);
+        }
+
+        $normalizedSource = ltrim((string)$source, './');
+        if (basename($normalizedSource) === 'banner_website_01.jpg') {
+            return 'Sociaal AI Lab Rotterdam-logo naast een groep mensen tijdens een bijeenkomst.';
+        }
+        if (basename($normalizedSource) === 'banner_website_02.jpg') {
+            return 'Een groep mensen werkt samen rond een laptop bij Sociaal AI Lab Rotterdam.';
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('getEventImageAltText')) {
+    function getEventImageAltText(array $event): string {
+        if (isset($event['image_alt'])) {
+            return trim((string)$event['image_alt']);
+        }
+
+        return trim(strip_tags((string)($event['title'] ?? '')));
+    }
+}
+
 if (!function_exists('formatEventDateDisplay')) {
     function formatEventDateDisplay($dateValue) {
         if (empty($dateValue)) return '';
@@ -48,7 +91,7 @@ if (!function_exists('eventEditVersion')) {
     function eventEditVersion(array $event) {
         $versionFields = [
             'id', 'title', 'date', 'end_date', 'time', 'time_end', 'description', 'event_summary',
-            'meer_info', 'info_link', 'image', 'event_gallery', 'event_documents', 'location',
+            'meer_info', 'info_link', 'image', 'image_alt', 'event_gallery', 'event_documents', 'location',
             'hardware_request', 'staff_present', 'target_audience', 'internal_notes',
             'show_signup_button', 'signup_embed', 'show_on_homepage',
         ];

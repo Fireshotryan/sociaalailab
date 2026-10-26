@@ -379,6 +379,10 @@ $banner1 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = '
 $banner2 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner2'")->fetchColumn() ?: 'images/banner_website_02.jpg';
 $banner3 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner3'")->fetchColumn() ?: null;
 $banner4 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner4'")->fetchColumn() ?: null;
+$bannerAlt1 = getSiteBannerAltText($pdo, 1, $banner1);
+$bannerAlt2 = getSiteBannerAltText($pdo, 2, $banner2);
+$bannerAlt3 = getSiteBannerAltText($pdo, 3, (string)$banner3);
+$bannerAlt4 = getSiteBannerAltText($pdo, 4, (string)$banner4);
 
 // Current user email
 $currentUser = $_SESSION['user'] ?? null;
@@ -432,6 +436,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $time = $_POST['time'] ?? null;
         $time_end = isset($_POST['add_end_time']) && !empty($_POST['time_end']) ? $_POST['time_end'] : null;
         $description = sanitizeEditorBlockInput($_POST['description'] ?? '');
+        $imageAlt = sanitizeEditorPlainText($_POST['image_alt'] ?? '');
         $eventSummary = sanitizeEditorBlockInput($_POST['event_summary'] ?? '');
         $meerInfo = sanitizeEditorBlockInput($_POST['meer_info'] ?? '');
         $location = sanitizeEditorPlainText($_POST['location'] ?? '');
@@ -488,8 +493,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             : null;
 
                         // voeg updated_at, updated_by, en approval gegevens toe bij insert
-                        $stmt = $pdo->prepare('INSERT INTO events (title, date, end_date, time, time_end, description, event_summary, meer_info, info_link, image, event_gallery, event_documents, location, hardware_request, staff_present, target_audience, internal_notes, show_signup_button, signup_embed, show_on_homepage, updated_at, updated_by, approval_status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)');
-                        $stmt->execute([$title, $date, $end_date, $time ?: null, $time_end ?: null, $description, $eventSummary ?: null, $meerInfo ?: null, $infoLink ?: null, $imageName, $galleryJson, $documentsJson, $location ?: null, $hardwareRequest ?: null, $staffPresent ?: null, $targetAudience ?: null, $internalNotes ?: null, $showSignupButton, $signupEmbed ?: null, $showOnHomepage, $currentUser, $approvalStatus, $currentUser]);
+                        $stmt = $pdo->prepare('INSERT INTO events (title, date, end_date, time, time_end, description, image_alt, event_summary, meer_info, info_link, image, event_gallery, event_documents, location, hardware_request, staff_present, target_audience, internal_notes, show_signup_button, signup_embed, show_on_homepage, updated_at, updated_by, approval_status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)');
+                        $stmt->execute([$title, $date, $end_date, $time ?: null, $time_end ?: null, $description, $imageAlt, $eventSummary ?: null, $meerInfo ?: null, $infoLink ?: null, $imageName, $galleryJson, $documentsJson, $location ?: null, $hardwareRequest ?: null, $staffPresent ?: null, $targetAudience ?: null, $internalNotes ?: null, $showSignupButton, $signupEmbed ?: null, $showOnHomepage, $currentUser, $approvalStatus, $currentUser]);
                         $eventId = $pdo->lastInsertId();
                         // Audit log: event created
                         audit_log($pdo, 'create', 'events', $eventId, 'title: ' . $title, $currentUser);
@@ -507,6 +512,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $time = $_POST['time'] ?? null;
         $time_end = isset($_POST['add_end_time']) && !empty($_POST['time_end']) ? $_POST['time_end'] : null;
         $description = sanitizeEditorBlockInput($_POST['description'] ?? '');
+        $imageAlt = array_key_exists('image_alt', $_POST)
+            ? sanitizeEditorPlainText($_POST['image_alt'])
+            : null;
         $eventSummary = sanitizeEditorBlockInput($_POST['event_summary'] ?? '');
         $meerInfo = sanitizeEditorBlockInput($_POST['meer_info'] ?? '');
         $location = sanitizeEditorPlainText($_POST['location'] ?? '');
@@ -622,6 +630,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         'meer_info' => $meerInfo ?: null,
                                         'info_link' => $infoLink ?: null,
                                         'image' => $imageName,
+                                        'image_alt' => $imageAlt ?? ($currentEvent['image_alt'] ?? ''),
                                         'event_gallery' => $galleryJson,
                                         'event_documents' => $documentsJson,
                                         'location' => $location ?: null,
@@ -647,8 +656,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         }
                                     }
 
-                                    $stmt = $pdo->prepare('UPDATE events SET title=?, date=?, end_date=?, time=?, time_end=?, description=?, event_summary=?, meer_info=?, info_link=?, image=?, event_gallery=?, event_documents=?, location=?, hardware_request=?, staff_present=?, target_audience=?, internal_notes=?, show_signup_button=?, signup_embed=?, show_on_homepage=?, updated_at=NOW(), updated_by=? WHERE id=?');
-                                    $stmt->execute([$title, $date, $end_date, $time ?: null, $time_end ?: null, $description, $eventSummary ?: null, $meerInfo ?: null, $infoLink ?: null, $imageName, $galleryJson, $documentsJson, $location ?: null, $hardwareRequest ?: null, $staffPresent ?: null, $targetAudience ?: null, $internalNotes ?: null, $showSignupButton, $signupEmbed ?: null, $showOnHomepage, $currentUser, $id]);
+                                    $imageAlt = $imageAlt ?? (string)($currentEvent['image_alt'] ?? '');
+                                    $stmt = $pdo->prepare('UPDATE events SET title=?, date=?, end_date=?, time=?, time_end=?, description=?, image_alt=?, event_summary=?, meer_info=?, info_link=?, image=?, event_gallery=?, event_documents=?, location=?, hardware_request=?, staff_present=?, target_audience=?, internal_notes=?, show_signup_button=?, signup_embed=?, show_on_homepage=?, updated_at=NOW(), updated_by=? WHERE id=?');
+                                    $stmt->execute([$title, $date, $end_date, $time ?: null, $time_end ?: null, $description, $imageAlt, $eventSummary ?: null, $meerInfo ?: null, $infoLink ?: null, $imageName, $galleryJson, $documentsJson, $location ?: null, $hardwareRequest ?: null, $staffPresent ?: null, $targetAudience ?: null, $internalNotes ?: null, $showSignupButton, $signupEmbed ?: null, $showOnHomepage, $currentUser, $id]);
                                     audit_log($pdo, 'update', 'events', $id, 'path=agenda_edit; fields=' . implode(',', $changedFields), $currentUser);
                                     $pdo->commit();
 
@@ -935,6 +945,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             audit_log($pdo, 'update', 'settings', null, 'banner4 set to ' . $path, $currentUser);
         }
 
+        foreach ([1, 2, 3, 4] as $bannerNumber) {
+            $altKey = 'banner' . $bannerNumber . '_alt';
+            if (isset($_POST['remove_banner' . $bannerNumber])) {
+                $pdo->prepare('DELETE FROM settings WHERE setting_key = ?')->execute([$altKey]);
+                continue;
+            }
+
+            $altText = sanitizeEditorPlainText($_POST[$altKey] ?? '');
+            $stmt = $pdo->prepare(
+                'INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)
+                 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)'
+            );
+            $stmt->execute([$altKey, $altText]);
+        }
+
+        $bannerAlt1 = getSiteBannerAltText($pdo, 1, $banner1);
+        $bannerAlt2 = getSiteBannerAltText($pdo, 2, $banner2);
+        $bannerAlt3 = getSiteBannerAltText($pdo, 3, $banner3);
+        $bannerAlt4 = getSiteBannerAltText($pdo, 4, $banner4);
         $message = 'Banners bijgewerkt.';
     } elseif ($action === 'reset_banners') {
         $defaultBanner1 = 'images/banner_website_01.jpg';
@@ -943,11 +972,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'banner2'")->execute([$defaultBanner2]);
         $pdo->prepare("DELETE FROM settings WHERE setting_key = 'banner3'")->execute();
         $pdo->prepare("DELETE FROM settings WHERE setting_key = 'banner4'")->execute();
+        $pdo->prepare("DELETE FROM settings WHERE setting_key IN ('banner1_alt', 'banner2_alt', 'banner3_alt', 'banner4_alt')")->execute();
         audit_log($pdo, 'update', 'settings', null, 'banners reset to default', $currentUser);
         $banner1 = $defaultBanner1;
         $banner2 = $defaultBanner2;
         $banner3 = null;
         $banner4 = null;
+        $bannerAlt1 = getSiteBannerAltText($pdo, 1, $banner1);
+        $bannerAlt2 = getSiteBannerAltText($pdo, 2, $banner2);
+        $bannerAlt3 = '';
+        $bannerAlt4 = '';
         $message = 'Banners zijn teruggezet naar de standaard waarden.';
     } elseif ($action === 'create_user') {
         $newEmail = trim((string)($_POST['new_email'] ?? ''));
@@ -1122,7 +1156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             $stmt = $pdo->prepare(
-                'SELECT id, title, date, end_date, time, time_end, description, location, image, info_link, event_gallery,
+                'SELECT id, title, date, end_date, time, time_end, description, location, image, image_alt, info_link, event_gallery,
                         created_by, target_audience, internal_notes, approval_status, approval_feedback,
                     meer_info, event_summary, signup_embed, show_signup_button, show_on_homepage,
                     event_documents,
@@ -1343,7 +1377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             $stmt = $pdo->prepare(
-                'SELECT id, title, date, end_date, time, time_end, description, location, image, info_link, event_gallery,
+                'SELECT id, title, date, end_date, time, time_end, description, location, image, image_alt, info_link, event_gallery,
                         approval_status, approval_feedback, meer_info, event_summary, target_audience,
                     internal_notes, signup_embed, show_signup_button, show_on_homepage,
                     event_documents,
@@ -1515,6 +1549,7 @@ if ($pageAction === 'create_page') {
         $meta = [
             'layout' => $layout,
             'image_position' => $imagePosition,
+            'image_alt' => sanitizeEditorPlainText($_POST['image_alt'] ?? ''),
         ];
         if ($greenText !== '') {
             $meta['green_text'] = $greenText;
@@ -1611,6 +1646,9 @@ if ($pageAction === 'create_page') {
         }
         $meta['layout'] = $layout;
         $meta['image_position'] = $imagePosition;
+        if (array_key_exists('image_alt', $_POST)) {
+            $meta['image_alt'] = sanitizeEditorPlainText($_POST['image_alt']);
+        }
         if ($greenText !== '') {
             $meta['green_text'] = $greenText;
             $meta['green_text_position'] = $greenTextPosition;
@@ -1644,6 +1682,7 @@ if ($pageAction === 'create_page') {
         $upload = handleUpload('image');
         if ($removeImage) {
             $imageName = null;
+            unset($meta['image_alt']);
         } else {
             $imageName = $upload['name'] ?? $oldImage;
         }
@@ -2391,6 +2430,8 @@ if ($page === 'users') {
                                     <label class="form-label">Afbeelding (verplicht)</label>
                                     <input type="hidden" name="existing_image" value="<?php echo htmlspecialchars($editEvent['image'] ?? ''); ?>" />
                                     <div class="admin-upload-widget" data-name="image" data-accept="image/*" data-required="true"></div>
+                                    <label class="form-label mt-2" for="image_alt">Alternatieve tekst (beschrijf de afbeelding; leeg laten als decoratief)</label>
+                                    <input type="text" class="form-input" id="image_alt" name="image_alt" value="<?php echo htmlspecialchars($editEvent['image_alt'] ?? strip_tags((string)($editEvent['title'] ?? '')), ENT_QUOTES, 'UTF-8'); ?>">
                                     <?php if (!empty($editEvent['image'])): ?>
                                         <p class="text-sm mt-2 text-gray-600">Huidige: <?php echo htmlspecialchars($editEvent['image']); ?></p>
                                         <label class="form-checkbox mt-2 inline-flex items-center gap-2">
@@ -2408,7 +2449,7 @@ if ($page === 'users') {
                                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
                                             <?php foreach ($editGallery as $galleryImage): ?>
                                                 <label class="border border-gray-200 rounded p-2 block">
-                                                    <img src="uploads/<?php echo htmlspecialchars($galleryImage); ?>" alt="Eventfoto" class="w-full h-24 object-cover rounded">
+                                                    <img src="uploads/<?php echo htmlspecialchars($galleryImage); ?>" alt="" class="w-full h-24 object-cover rounded">
                                                     <span class="form-checkbox mt-2 inline-flex items-center gap-2">
                                                         <input type="checkbox" name="remove_gallery_images[]" value="<?php echo htmlspecialchars($galleryImage); ?>">
                                                         Verwijder
@@ -2586,6 +2627,8 @@ if ($page === 'users') {
                                 <div>
                                     <label class="form-label">Afbeelding (verplicht)</label>
                                     <div class="admin-upload-widget" data-name="image" data-accept="image/*" data-required="true"></div>
+                                    <label class="form-label mt-2" for="image_alt">Alternatieve tekst (beschrijf de afbeelding; leeg laten als decoratief)</label>
+                                    <input type="text" class="form-input" id="image_alt" name="image_alt" value="<?php echo htmlspecialchars($_POST['image_alt'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                 </div>
 
                                 <div>
@@ -3303,7 +3346,7 @@ if ($page === 'users') {
                                         <!-- Afbeelding -->
                                         <div id="approval-image-container" style="margin-top: 1rem; display: none;">
                                             <label style="font-size: 0.875rem; color: #6b7280; margin: 0 0 0.5rem 0; display: block;"><strong>Afbeelding:</strong></label>
-                                            <img id="approval-image" src="" alt="Event afbeelding" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: cover; margin-bottom: 0.5rem;">
+                                            <img id="approval-image" src="" alt="" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: cover; margin-bottom: 0.5rem;">
                                             <input type="file" name="approval_image" id="approval-image-input" class="form-input" accept="image/*" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
                                             <input type="hidden" name="approval_existing_image" id="approval-existing-image">
                                             <small style="color: #6b7280;">Laat leeg om huidige afbeelding te behouden</small>
@@ -3423,6 +3466,7 @@ if ($page === 'users') {
                                     if (item.image) {
                                         const imageElem = document.getElementById('approval-image');
                                         imageElem.src = 'uploads/' + item.image;
+                                        imageElem.alt = item.image_alt || item.title || '';
                                         imageContainer.style.display = 'block';
                                     } else {
                                         imageContainer.style.display = 'none';
@@ -4764,6 +4808,8 @@ if ($page === 'users') {
                                     <label class="form-label">Afbeelding (optioneel)</label>
                                     <input type="hidden" name="existing_image" value="<?php echo htmlspecialchars($editPage['image'] ?? ''); ?>" />
                                     <div class="admin-upload-widget" data-name="image" data-accept="image/*"></div>
+                                    <label class="form-label mt-2" for="image_alt">Alternatieve tekst (beschrijf de afbeelding; leeg laten als decoratief)</label>
+                                    <input type="text" class="form-input" id="image_alt" name="image_alt" value="<?php echo htmlspecialchars($editMeta['image_alt'] ?? getPageImageAltText($editPage), ENT_QUOTES, 'UTF-8'); ?>">
                                     <?php if (!empty($editPage['image'])): ?>
                                         <p class="text-sm mt-2 text-gray-600">Huidige afbeelding: <?php echo htmlspecialchars($editPage['image']); ?></p>
                                         <label class="form-checkbox mt-2 inline-flex items-center gap-2">
@@ -4859,6 +4905,8 @@ if ($page === 'users') {
                                 <div>
                                     <label class="form-label">Afbeelding (optioneel)</label>
                                     <div class="admin-upload-widget" data-name="image" data-accept="image/*"></div>
+                                    <label class="form-label mt-2" for="image_alt">Alternatieve tekst (beschrijf de afbeelding; leeg laten als decoratief)</label>
+                                    <input type="text" class="form-input" id="image_alt" name="image_alt" value="<?php echo htmlspecialchars($_POST['image_alt'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                 </div>
 
 
@@ -5016,22 +5064,22 @@ if ($page === 'users') {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <p class="font-semibold mb-2">Banner 1</p>
-                                <img src="<?php echo htmlspecialchars($banner1); ?>" alt="Banner 1" class="w-full h-auto border rounded-lg shadow">
+                                <img src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars($bannerAlt1, ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto border rounded-lg shadow">
                             </div>
                             <div>
                                 <p class="font-semibold mb-2">Banner 2</p>
-                                <img src="<?php echo htmlspecialchars($banner2); ?>" alt="Banner 2" class="w-full h-auto border rounded-lg shadow">
+                                <img src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars($bannerAlt2, ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto border rounded-lg shadow">
                             </div>
                             <?php if ($banner3): ?>
                             <div>
                                 <p class="font-semibold mb-2">Banner 3</p>
-                                <img src="<?php echo htmlspecialchars($banner3); ?>" alt="Banner 3" class="w-full h-auto border rounded-lg shadow">
+                                <img src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars($bannerAlt3, ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto border rounded-lg shadow">
                             </div>
                             <?php endif; ?>
                             <?php if ($banner4): ?>
                             <div>
                                 <p class="font-semibold mb-2">Banner 4</p>
-                                <img src="<?php echo htmlspecialchars($banner4); ?>" alt="Banner 4" class="w-full h-auto border rounded-lg shadow">
+                                <img src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars($bannerAlt4, ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto border rounded-lg shadow">
                             </div>
                             <?php endif; ?>
                         </div>
@@ -5043,6 +5091,8 @@ if ($page === 'users') {
                                 <div class="form-group">
                                     <label class="form-label">Vervang Banner 1</label>
                                     <div class="admin-upload-widget" data-name="banner1" data-accept="image/*"></div>
+                                    <label class="form-label mt-2" for="banner1_alt">Alternatieve tekst (leeg laten als decoratief)</label>
+                                    <input class="form-input" id="banner1_alt" name="banner1_alt" value="<?php echo htmlspecialchars($bannerAlt1, ENT_QUOTES, 'UTF-8'); ?>">
                                     <label class="form-checkbox mt-2 inline-flex items-center gap-2">
                                         <input type="checkbox" name="remove_banner1" value="1">
                                         Verwijder huidige banner 1
@@ -5052,6 +5102,8 @@ if ($page === 'users') {
                                 <div class="form-group">
                                     <label class="form-label">Vervang Banner 2</label>
                                     <div class="admin-upload-widget" data-name="banner2" data-accept="image/*"></div>
+                                    <label class="form-label mt-2" for="banner2_alt">Alternatieve tekst (leeg laten als decoratief)</label>
+                                    <input class="form-input" id="banner2_alt" name="banner2_alt" value="<?php echo htmlspecialchars($bannerAlt2, ENT_QUOTES, 'UTF-8'); ?>">
                                     <label class="form-checkbox mt-2 inline-flex items-center gap-2">
                                         <input type="checkbox" name="remove_banner2" value="1">
                                         Verwijder huidige banner 2
@@ -5061,6 +5113,8 @@ if ($page === 'users') {
                                 <div class="form-group">
                                     <label class="form-label">Vervang Banner 3 (optioneel)</label>
                                     <div class="admin-upload-widget" data-name="banner3" data-accept="image/*"></div>
+                                    <label class="form-label mt-2" for="banner3_alt">Alternatieve tekst (leeg laten als decoratief)</label>
+                                    <input class="form-input" id="banner3_alt" name="banner3_alt" value="<?php echo htmlspecialchars($bannerAlt3, ENT_QUOTES, 'UTF-8'); ?>">
                                     <label class="form-checkbox mt-2 inline-flex items-center gap-2">
                                         <input type="checkbox" name="remove_banner3" value="1">
                                         Verwijder huidige banner 3
@@ -5070,6 +5124,8 @@ if ($page === 'users') {
                                 <div class="form-group">
                                     <label class="form-label">Vervang Banner 4 (optioneel)</label>
                                     <div class="admin-upload-widget" data-name="banner4" data-accept="image/*"></div>
+                                    <label class="form-label mt-2" for="banner4_alt">Alternatieve tekst (leeg laten als decoratief)</label>
+                                    <input class="form-input" id="banner4_alt" name="banner4_alt" value="<?php echo htmlspecialchars($bannerAlt4, ENT_QUOTES, 'UTF-8'); ?>">
                                     <label class="form-checkbox mt-2 inline-flex items-center gap-2">
                                         <input type="checkbox" name="remove_banner4" value="1">
                                         Verwijder huidige banner 4
@@ -5291,6 +5347,7 @@ if ($page === 'users') {
                 const infoLink = getFieldValue(form, 'info_link').trim();
                 const signupEmbed = getFieldValue(form, 'signup_embed').trim();
                 const imageSrc = resolveImageSrc(form);
+                const imageAlt = escapeHtml(getFieldValue(form, 'image_alt').trim());
                 const mapUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(location);
                 const hasEmbed = signupEmbed !== '';
                 const hasSignup = !!(getFieldInput(form, 'show_signup_button') && getFieldInput(form, 'show_signup_button').checked);
@@ -5326,7 +5383,7 @@ if ($page === 'users') {
                     '<div class="text-gray-700 pb-1"><strong> Wat:</strong><div class="mt-1">' + (descriptionRaw ? escapeHtml(descriptionRaw) : '<em class="text-gray-500">Geen beschrijving ingevuld</em>') + '</div></div>' +
                     '</div>' +
                     '</div>' +
-                    (imageSrc ? '<div class="mobile-image mb-4"><img src="' + escapeHtml(imageSrc) + '" alt="" class="image-template-photo" style="object-fit: contain;"></div>' : '') +
+                    (imageSrc ? '<div class="mobile-image mb-4"><img src="' + escapeHtml(imageSrc) + '" alt="' + imageAlt + '" class="image-template-photo" style="object-fit: contain;"></div>' : '') +
                     (hasEmbed ?
                         '<div class="mt-4 rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">Aanmelder.nl embed wordt na opslaan getoond.</div>' :
                         (hasSignup ?
@@ -5338,7 +5395,7 @@ if ($page === 'users') {
                         ''
                     ) +
                     '</div>' +
-                    (imageSrc ? '<div class="flex-1 desktop-image"><img src="' + escapeHtml(imageSrc) + '" alt="" class="w-full h-auto object-cover shadow-md"></div>' : '') +
+                    (imageSrc ? '<div class="flex-1 desktop-image"><img src="' + escapeHtml(imageSrc) + '" alt="' + imageAlt + '" class="w-full h-auto object-cover shadow-md"></div>' : '') +
                     '</section>';
             }
 
@@ -5350,19 +5407,20 @@ if ($page === 'users') {
                 const imagePosition = (getFieldValue(form, 'image_position').trim() || 'normal');
                 const infoLink = getFieldValue(form, 'info_link').trim();
                 const imageSrc = resolveImageSrc(form);
+                const imageAlt = escapeHtml(getFieldValue(form, 'image_alt').trim());
                 const hasImage = !!imageSrc;
                 const hasText = !!(titleHtml || bodyHtml);
                 const sideBySide = hasImage && hasText && imagePosition !== 'normal';
                 const textStyle = sideBySide ? 'flex: 1; padding: 0 1.5rem;' : '';
 
                 const leftImage = (imagePosition === 'left' && hasText) ?
-                    '<div style="flex: 0 0 50%; min-width: 0; max-width: 600px;"><img src="' + escapeHtml(imageSrc) + '" alt="" class="w-full h-auto object-cover shadow-md"></div>' : '';
+                    '<div style="flex: 0 0 50%; min-width: 0; max-width: 600px;"><img src="' + escapeHtml(imageSrc) + '" alt="' + imageAlt + '" class="w-full h-auto object-cover shadow-md"></div>' : '';
                 const rightImage = (imagePosition === 'right' && hasText) ?
-                    '<div style="flex: 0 0 50%; min-width: 0; max-width: 600px;"><img src="' + escapeHtml(imageSrc) + '" alt="" class="w-full h-auto object-cover shadow-md"></div>' : '';
+                    '<div style="flex: 0 0 50%; min-width: 0; max-width: 600px;"><img src="' + escapeHtml(imageSrc) + '" alt="' + imageAlt + '" class="w-full h-auto object-cover shadow-md"></div>' : '';
                 const imageOnly = (hasImage && !hasText) ?
-                    '<div style="width: 100%;"><img src="' + escapeHtml(imageSrc) + '" alt="" class="w-full h-auto object-cover shadow-md"></div>' : '';
+                    '<div style="width: 100%;"><img src="' + escapeHtml(imageSrc) + '" alt="' + imageAlt + '" class="w-full h-auto object-cover shadow-md"></div>' : '';
                 const belowImage = (hasImage && imagePosition === 'normal' && hasText) ?
-                    '<div class="mt-6" style="max-width: 600px;"><img src="' + escapeHtml(imageSrc) + '" alt="" class="w-full h-auto object-cover shadow-md"></div>' : '';
+                    '<div class="mt-6" style="max-width: 600px;"><img src="' + escapeHtml(imageSrc) + '" alt="' + imageAlt + '" class="w-full h-auto object-cover shadow-md"></div>' : '';
 
                 renderedEl.innerHTML = '' +
                     '<section class="bg-white shadow-lg p-8 max-w-6xl mx-auto my-12">' +

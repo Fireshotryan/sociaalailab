@@ -76,6 +76,8 @@
             preview.innerHTML = '';
             converter.style.display = 'none';
             if (!input.files.length) return;
+            const altInput = form && Array.from(form.elements).find(element => element.name === name.replace(/\[\]$/, '') + '_alt');
+            if (altInput) altInput.value = '';
             let oversize = false;
             Array.from(input.files).forEach(file => {
                 if (file.size > 10 * 1024 * 1024) oversize = true;
@@ -83,6 +85,7 @@
                 reader.onload = e => {
                     const img = document.createElement('img');
                     img.src = e.target.result;
+                    img.alt = '';
                     img.style.maxWidth = '120px';
                     img.style.maxHeight = '120px';
                     img.style.margin = '6px';

@@ -56,6 +56,7 @@ try {
             description TEXT,
             location VARCHAR(255) DEFAULT NULL,
             image VARCHAR(255) DEFAULT NULL,
+            image_alt TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP NULL DEFAULT NULL,
             updated_by VARCHAR(255) DEFAULT NULL
@@ -98,6 +99,9 @@ try {
 
     if (!in_array('location', $columns)) {
         $pdo->exec("ALTER TABLE events ADD COLUMN location VARCHAR(255) DEFAULT NULL");
+    }
+    if (!in_array('image_alt', $columns)) {
+        $pdo->exec("ALTER TABLE events ADD COLUMN image_alt TEXT DEFAULT NULL");
     }
     if (!in_array('updated_at', $columns)) {
         $pdo->exec("ALTER TABLE events ADD COLUMN updated_at TIMESTAMP NULL DEFAULT NULL");
@@ -356,4 +360,3 @@ try {
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
 }
-

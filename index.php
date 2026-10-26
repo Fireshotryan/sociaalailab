@@ -216,19 +216,19 @@ error_reporting(E_ALL);
 
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img class="" src="<?php echo htmlspecialchars($banner1); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img class="" src="<?php echo htmlspecialchars($banner2); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php if ($banner3): ?>
     <div class="banner banner-3">
-        <img class="" src="<?php echo htmlspecialchars($banner3); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
     <?php if ($banner4): ?>
     <div class="banner banner-4">
-        <img class="" src="<?php echo htmlspecialchars($banner4); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
 </div>
@@ -292,7 +292,7 @@ include __DIR__ . '/navbar.php';
                         }
                         ?>
                         <img src="<?php echo htmlspecialchars($imageSrc); ?>"
-                             alt="<?php echo htmlspecialchars($block['title']); ?>"
+                             alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>"
                              class="card-icon w-24 md:w-32 lg:w-40 mx-auto">                    <?php endif; ?>
                 </div>
                 <?php if ($cardGreenText !== '' && $cardGreenTextPosition === 'above'): ?>
@@ -399,7 +399,7 @@ include __DIR__ . '/navbar.php';
             <?php if ($hasValidImage): ?>
             <div class="homepage-event-mobile-image">
                 <div class="image-template-wrap">
-                    <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(strip_tags((string)$event['title'])); ?>" class="image-template-photo">
+                    <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>" class="image-template-photo">
                 </div>
             </div>
             <?php endif; ?>
@@ -421,7 +421,7 @@ include __DIR__ . '/navbar.php';
     </div>
     <div class="flex-1<?php echo !$hasValidImage ? ' mobile-hide-no-image' : ''; ?>">
         <div class="image-template-wrap">
-            <img src="<?php echo $hasValidImage ? 'uploads/' . htmlspecialchars($eventImageName) : 'images/event/Agenda_event_2_Studenten_en_bewoners_verkennen_de_sociale_invloed_van_AI.jpg'; ?>" alt="<?php echo htmlspecialchars(strip_tags((string)$event['title'])); ?>" class="image-template-photo">
+            <img src="<?php echo $hasValidImage ? 'uploads/' . htmlspecialchars($eventImageName) : 'images/event/Agenda_event_2_Studenten_en_bewoners_verkennen_de_sociale_invloed_van_AI.jpg'; ?>" alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>" class="image-template-photo">
             <!--
             <div class="image-template-badge">
                 <span><?php echo htmlspecialchars($eventDayMonth); ?></span>
@@ -463,7 +463,7 @@ include __DIR__ . '/navbar.php';
         <?php foreach ($linkedinPosts as $i => $post): ?>
         <article class="homepage-news-card" data-news-index="<?php echo (int)$i; ?>">
             <?php if (!empty($post['image'])): ?>
-                <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="LinkedIn bericht" class="homepage-news-card-img" loading="lazy">
+                <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars(trim((string)($post['title'] ?? '')), ENT_QUOTES, 'UTF-8'); ?>" class="homepage-news-card-img" loading="lazy">
             <?php endif; ?>
             <div class="homepage-news-card-content">
                 <h3 class="homepage-news-card-title"><?php echo formatHomepageNewsText($post['title'] ?: 'SociaalAI Lab Update'); ?></h3>

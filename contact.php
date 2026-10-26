@@ -44,19 +44,19 @@ try {
 
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img class="" src="<?php echo htmlspecialchars($banner1); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img class="" src="<?php echo htmlspecialchars($banner2); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php if ($banner3): ?>
     <div class="banner banner-3">
-        <img class="" src="<?php echo htmlspecialchars($banner3); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
     <?php if ($banner4): ?>
     <div class="banner banner-4">
-        <img class="" src="<?php echo htmlspecialchars($banner4); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
 </div>
@@ -103,14 +103,14 @@ include __DIR__ . '/navbar.php';
             <div style="<?php echo $divStyle; ?>">
                 <?php if ($hasImage && $imagePosition === 'left' && $hasText): ?>
                     <div style="flex: 0 0 50%; min-width: 0; max-width: 600px;">
-                        <img src="<?php echo htmlspecialchars($imageSrc); ?>" 
-                             alt="<?php echo htmlspecialchars($block['title']); ?>" 
+                        <img src="<?php echo htmlspecialchars($imageSrc); ?>"
+                             alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>"
                              class="w-full h-64 object-cover rounded shadow-md">
                     </div>
                 <?php elseif ($hasImage && !$hasText): ?>
                     <div style="width: 100%;">
                         <img src="<?php echo htmlspecialchars($imageSrc); ?>" 
-                             alt="<?php echo htmlspecialchars($block['title']); ?>" 
+                             alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>"
                              class="w-full h-auto object-cover rounded shadow-md">
                     </div>
                 <?php endif; ?>
@@ -129,7 +129,7 @@ include __DIR__ . '/navbar.php';
                 <?php if ($hasImage && $imagePosition === 'right' && $hasText): ?>
                     <div style="flex: 0 0 50%; min-width: 0; max-width: 600px;">
                         <img src="<?php echo htmlspecialchars($imageSrc); ?>" 
-                             alt="<?php echo htmlspecialchars($block['title']); ?>" 
+                             alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>"
                              class="w-full h-64 object-cover rounded shadow-md">
                     </div>
                 <?php endif; ?>
@@ -138,7 +138,7 @@ include __DIR__ . '/navbar.php';
             <?php if ($hasImage && $imagePosition === 'normal' && $hasText): ?>
                 <div style="max-width: 600px;">
                     <img src="<?php echo htmlspecialchars($imageSrc); ?>" 
-                         alt="<?php echo htmlspecialchars($block['title']); ?>" 
+                         alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>"
                          class="w-full h-auto object-cover rounded shadow-md">
                 </div>
             <?php endif; ?>

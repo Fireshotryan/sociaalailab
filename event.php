@@ -26,6 +26,14 @@ try {
     $events = [];
 }
 
+$pageHeadingIndex = null;
+foreach ($pageBlocks as $index => $block) {
+    if (trim((string)($block['title'] ?? '')) !== '') {
+        $pageHeadingIndex = $index;
+        break;
+    }
+}
+
 ?>
 
 <!doctype html>
@@ -43,19 +51,19 @@ try {
 
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img class="" src="<?php echo htmlspecialchars($banner1); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img class="" src="<?php echo htmlspecialchars($banner2); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php if ($banner3): ?>
     <div class="banner banner-3">
-        <img class="" src="<?php echo htmlspecialchars($banner3); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
     <?php if ($banner4): ?>
     <div class="banner banner-4">
-        <img class="" src="<?php echo htmlspecialchars($banner4); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
 </div>
@@ -66,7 +74,10 @@ include __DIR__ . '/navbar.php';
 ?>
 
 <main id="main-content" tabindex="-1">
-    <?php foreach ($pageBlocks as $block): ?>
+    <?php if ($pageHeadingIndex === null): ?>
+        <h1 class="visually-hidden">Evenementen</h1>
+    <?php endif; ?>
+    <?php foreach ($pageBlocks as $blockIndex => $block): ?>
         <?php
         $metaArr = $block['meta'] ? json_decode($block['meta'], true) : [];
         $hasImage = !empty($block['image']);
@@ -92,11 +103,11 @@ include __DIR__ . '/navbar.php';
             <div style="<?php echo $divStyle; ?>">
                 <?php if ($hasImage && $imagePosition === 'left' && $hasText): ?>
                     <div style="flex: 0 0 50%; min-width: 0; max-width: 600px;">
-                        <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title'] ?? ''); ?>" class="w-full h-auto object-cover shadow-md">
+                        <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto object-cover shadow-md">
                     </div>
                 <?php elseif ($hasImage && !$hasText): ?>
                     <div style="width: 100%;">
-                        <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title'] ?? ''); ?>" class="w-full h-auto object-cover shadow-md">
+                        <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto object-cover shadow-md">
                     </div>
                 <?php endif; ?>
 
@@ -105,7 +116,13 @@ include __DIR__ . '/navbar.php';
                     <?php if ($greenText !== '' && $greenTextPosition === 'above'): ?>
                         <div class="green-highlight mb-3"><?php echo nl2br(htmlspecialchars($greenText)); ?></div>
                     <?php endif; ?>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4"><?php echo renderEditorInline($block['title']); ?></h1>
+                    <?php if (trim((string)($block['title'] ?? '')) !== ''): ?>
+                        <?php if ($blockIndex === $pageHeadingIndex): ?>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-4"><?php echo renderEditorInline($block['title']); ?></h1>
+                        <?php else: ?>
+                            <h2 class="text-3xl font-bold text-gray-900 mb-4"><?php echo renderEditorInline($block['title']); ?></h2>
+                        <?php endif; ?>
+                    <?php endif; ?>
                     <div class="text-gray-700 text-lg"><?php echo renderEditorBlock($block['body']); ?></div>
                     <?php if ($greenText !== '' && $greenTextPosition === 'below'): ?>
                         <div class="green-highlight mb-3"><?php echo nl2br(htmlspecialchars($greenText)); ?></div>
@@ -115,14 +132,14 @@ include __DIR__ . '/navbar.php';
 
                 <?php if ($hasImage && $imagePosition === 'right' && $hasText): ?>
                     <div style="flex: 0 0 50%; min-width: 0; max-width: 600px;">
-                        <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title'] ?? ''); ?>" class="w-full h-auto object-cover shadow-md">
+                        <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto object-cover shadow-md">
                     </div>
                 <?php endif; ?>
             </div>
 
             <?php if ($hasImage && $imagePosition === 'normal' && $hasText): ?>
                 <div class="mt-6" style="max-width: 600px;">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title'] ?? ''); ?>" class="w-full h-auto object-cover shadow-md">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto object-cover shadow-md">
                 </div>
             <?php endif; ?>
         </section>
@@ -163,7 +180,7 @@ include __DIR__ . '/navbar.php';
                 </div>
                 <?php if ($event['image']): ?>
                 <div class="flex-1">
-                    <img src="uploads/<?php echo htmlspecialchars($event['image']); ?>" alt="" class="w-full h-auto object-cover shadow-md">
+                    <img src="uploads/<?php echo htmlspecialchars($event['image']); ?>" alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-auto object-cover shadow-md">
                 </div>
                 <?php endif; ?>
             </section>

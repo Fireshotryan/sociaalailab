@@ -47,19 +47,19 @@ try {
 <body class="bg-gradient-to-br from-[#00811F] to-[#b9eb34]">
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img class="" src="<?php echo htmlspecialchars($banner1); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img class="" src="<?php echo htmlspecialchars($banner2); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php if ($banner3): ?>
     <div class="banner banner-3">
-        <img class="" src="<?php echo htmlspecialchars($banner3); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
     <?php if ($banner4): ?>
     <div class="banner banner-4">
-        <img class="" src="<?php echo htmlspecialchars($banner4); ?>">
+        <img class="" src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
 </div>
@@ -70,22 +70,19 @@ include __DIR__ . '/navbar.php';
 ?>
 
 <main id="main-content" tabindex="-1">
-    <div id="agenda-terugblik-switch" class="mobile flex items-center justify-center gap-1 " style="scroll-margin-top: 110px;">
+    <h1 class="visually-hidden">Agenda</h1>
+    <nav id="agenda-terugblik-switch" class="mobile flex items-center justify-center gap-1 " style="scroll-margin-top: 110px;" aria-label="Agenda en terugblik">
         <div class="agenda bg-white p-6 shadow-lg max-w-xl mt-6 w-full border-r text-center">
-            <a href="agenda.php#agenda-terugblik-switch">
-                <h1 class="text-2xl text-green-800 font-semibold">
-                    Agenda (<?php echo $totalUpcoming; ?>)
-                </h1>
+            <a class="block text-2xl text-green-800 font-semibold" href="agenda.php#agenda-terugblik-switch" aria-current="page">
+                Agenda (<?php echo $totalUpcoming; ?>)
             </a>
         </div>
         <div class="terugblik bg-white p-6 max-w-xl mt-6 w-full text-center border-r border-gray-500">
-            <a href="terugblikken.php#agenda-terugblik-switch">
-                <h1 class="text-2xl text-[#000000] font-semibold">
-                    Terugblik
-                </h1>
+            <a class="block text-2xl text-[#000000] font-semibold" href="terugblikken.php#agenda-terugblik-switch">
+                Terugblik
             </a>
         </div>
-    </div>
+    </nav>
 
 <?php
 require 'db.php';
@@ -134,7 +131,7 @@ foreach ($events as $event):
             </div>
             <?php if ($hasValidImage): ?>
             <div class="mobile-image mb-4">
-                <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(strip_tags((string)$event['title'])); ?>" class="image-template-photo" style="object-fit: contain;">
+                <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>" class="image-template-photo" style="object-fit: contain;">
             </div>
             <?php endif; ?>
             <?php if ($signupEmbed !== ''): ?>
@@ -147,7 +144,7 @@ foreach ($events as $event):
         <?php if ($hasValidImage): ?>
         <div class="flex-1 desktop-image">
             <div class="image-template-wrap">
-                <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(strip_tags((string)$event['title'])); ?>" class="image-template-photo" style="object-fit: contain;">
+                <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>" class="image-template-photo" style="object-fit: contain;">
                 <!--
                 <div class="image-template-badge">
                     <span><?php echo htmlspecialchars($dayMonth); ?></span>

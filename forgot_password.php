@@ -66,8 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-gradient-to-br from-[#00811F] to-[#b9eb34]">
     <div class="banner-wrapper relative">
-        <img src="images/banner_website_01.jpg" alt="Banner 1" class="banner active h-60 md:h-96 w-full object-cover">
-        <img src="images/banner_website_02.jpg" alt="Banner 2" class="banner h-60 md:h-96 w-full object-cover">
+        <img src="images/banner_website_01.jpg" alt="Sociaal AI Lab Rotterdam-logo naast een groep mensen tijdens een bijeenkomst." class="banner active h-60 md:h-96 w-full object-cover">
+        <img src="images/banner_website_02.jpg" alt="Een groep mensen werkt samen rond een laptop bij Sociaal AI Lab Rotterdam." class="banner h-60 md:h-96 w-full object-cover">
     </div>
 
     <?php

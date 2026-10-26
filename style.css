@@ -3434,29 +3434,30 @@ main>div.grid>div:hover {
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.12);
 }
 
-#watdoenwe-switch a h1 {
+#watdoenwe-switch a {
+    display: block;
     font-size: clamp(1rem, 2vw, 1.3rem);
     color: black;
     font-weight: 600;
     margin: 0;
 }
 
-#watdoenwe-switch a h1:hover {
+#watdoenwe-switch a:hover {
     color: #005e13;
 }
 
 /* Kennis pagina actief */
-.page-kennis #watdoenwe-switch a[href*="kennis"] h1 {
+.page-kennis #watdoenwe-switch a[href*="kennis"] {
     color: #00811F;
 }
 
 /* Actie pagina actief */
-.page-actie #watdoenwe-switch a[href*="actie"] h1 {
+.page-actie #watdoenwe-switch a[href*="actie"] {
     color: #00811F;
 }
 
 /* Faciliteit pagina actief */
-.page-faciliteit #watdoenwe-switch a[href*="faciliteit"] h1 {
+.page-faciliteit #watdoenwe-switch a[href*="faciliteit"] {
     color: #00811F;
 }
 
@@ -4395,6 +4396,18 @@ section:focus-visible,
     transform: translateY(0);
     outline: 3px solid #00811F;
     outline-offset: 2px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .watdoenwe-page .grid>.bg-white:focus {

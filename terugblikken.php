@@ -80,13 +80,13 @@ try {
 <body class="bg-gradient-to-br from-[#00811F] to-[#b9eb34]">
 
 <div class="banner-wrapper">
-    <img src="<?php echo htmlspecialchars($banner1); ?>" alt="Banner 1" class="banner active w-full object-cover h-60 md:h-96">
-    <img src="<?php echo htmlspecialchars($banner2); ?>" alt="Banner 2" class="banner w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>" class="banner active w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>" class="banner w-full object-cover h-60 md:h-96">
     <?php if ($banner3): ?>
-    <img src="<?php echo htmlspecialchars($banner3); ?>" alt="Banner 3" class="banner w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>" class="banner w-full object-cover h-60 md:h-96">
     <?php endif; ?>
     <?php if ($banner4): ?>
-    <img src="<?php echo htmlspecialchars($banner4); ?>" alt="Banner 4" class="banner w-full object-cover h-60 md:h-96">
+    <img src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>" class="banner w-full object-cover h-60 md:h-96">
     <?php endif; ?>
 </div>
 
@@ -96,22 +96,17 @@ include __DIR__ . '/navbar.php';
 ?>
 
 <main id="main-content" tabindex="-1" class="pt-8 sm:pt-12">
-    <div id="agenda-terugblik-switch" class="mobile flex items-center justify-center gap-1" style="scroll-margin-top: 110px;">
+    <h1 class="visually-hidden">Terugblik</h1>
+    <nav id="agenda-terugblik-switch" class="mobile flex items-center justify-center gap-1" style="scroll-margin-top: 110px;" aria-label="Agenda en terugblik">
         <div class="agenda bg-white p-6 shadow-lg max-w-xl mt-6 w-full border-r text-center">
-            <a href="agenda.php#agenda-terugblik-switch">
-                <h1 class="text-2xl text-[#000000] font-semibold">
-                    Agenda (<?php echo $totalUpcoming; ?>)
-                </h1>
+            <a class="block text-2xl text-[#000000] font-semibold" href="agenda.php#agenda-terugblik-switch">
+                Agenda (<?php echo $totalUpcoming; ?>)
             </a>
         </div>
         <div class="terugblik bg-white p-6 max-w-xl mt-6 w-full text-center border-r border-gray-500">
-            <a href="terugblikken.php#agenda-terugblik-switch">
-                <h1 class="text-2xl text-green-800 font-semibold">
-                    Terugblik
-                </h1>
-            </a>
+            <a class="block text-2xl text-green-800 font-semibold" href="terugblikken.php#agenda-terugblik-switch" aria-current="page">Terugblik</a>
         </div>
-    </div>
+    </nav>
 
     <?php
     $stmt = $pdo->prepare("SELECT * FROM pages WHERE page_key = 'terugblikken' ORDER BY (sort_order IS NULL OR sort_order = 0) ASC, sort_order ASC, created_at ASC, id ASC");
@@ -170,7 +165,7 @@ include __DIR__ . '/navbar.php';
                 }
                 ?>
                 <div style="<?php echo $imageStyle; ?>">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; object-fit: contain; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; object-fit: contain; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
             <?php if ($hasText): ?>
@@ -179,7 +174,7 @@ include __DIR__ . '/navbar.php';
                         <div class="green-highlight mb-3"><?php echo nl2br(htmlspecialchars($greenText)); ?></div>
                     <?php endif; ?>
                     <?php if (!empty($block['title'])): ?>
-                        <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-900"><?php echo renderEditorInline($block['title']); ?></h3>
+                        <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-900"><?php echo renderEditorInline($block['title']); ?></h2>
                     <?php endif; ?>
                     <?php if (!empty($block['body'])): ?>
                         <div class="text-sm sm:text-base text-gray-700 leading-relaxed"><?php echo renderEditorBlock($block['body']); ?></div>
@@ -207,12 +202,12 @@ include __DIR__ . '/navbar.php';
                 }
                 ?>
                 <div style="<?php echo $imageStyle; ?>">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; object-fit: contain; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; object-fit: contain; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
             <?php if ($hasImage && $imagePosition === 'normal'): ?>
                 <div style="width: 100%; max-width: 600px;">
-                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars($block['title']); ?>" style="width: 100%; height: auto; object-fit: contain; border-radius: 0.5rem;">
+                    <img src="uploads/<?php echo htmlspecialchars($block['image']); ?>" alt="<?php echo htmlspecialchars(getPageImageAltText($block), ENT_QUOTES, 'UTF-8'); ?>" style="width: 100%; height: auto; object-fit: contain; border-radius: 0.5rem;">
                 </div>
             <?php endif; ?>
         </section>
@@ -268,7 +263,7 @@ include __DIR__ . '/navbar.php';
                 </div>
                 <?php if ($hasValidImage): ?>
                 <div class="mobile-image mb-4">
-                    <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(strip_tags((string)$event['title'])); ?>" class="image-template-photo" style="object-fit: contain;">
+                    <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>" class="image-template-photo" style="object-fit: contain;">
                 </div>
                 <?php endif; ?>
                 <div class="mb-4 flex flex-wrap gap-3">
@@ -282,7 +277,7 @@ include __DIR__ . '/navbar.php';
         <?php if ($hasValidImage): ?>
         <div class="flex-1 desktop-image">
             <div class="image-template-wrap">
-                <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(strip_tags((string)$event['title'])); ?>" class="image-template-photo" style="object-fit: contain;">
+                <img src="uploads/<?php echo htmlspecialchars($eventImageName); ?>" alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>" class="image-template-photo" style="object-fit: contain;">
                 <!--
                 <div class="image-template-badge">
                     <span><?php echo htmlspecialchars($dayMonth); ?></span>

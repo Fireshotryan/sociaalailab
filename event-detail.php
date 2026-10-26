@@ -170,19 +170,19 @@ if ($event) {
 
 <div class="banner-wrapper">
     <div class="banner banner-1 active">
-        <img src="<?php echo htmlspecialchars($banner1); ?>" alt="Banner 1">
+        <img src="<?php echo htmlspecialchars($banner1); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 1, $banner1), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <div class="banner banner-2">
-        <img src="<?php echo htmlspecialchars($banner2); ?>" alt="Banner 2">
+        <img src="<?php echo htmlspecialchars($banner2); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 2, $banner2), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php if ($banner3): ?>
     <div class="banner banner-3">
-        <img src="<?php echo htmlspecialchars($banner3); ?>" alt="Banner 3">
+        <img src="<?php echo htmlspecialchars($banner3); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 3, $banner3), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
     <?php if ($banner4): ?>
     <div class="banner banner-4">
-        <img src="<?php echo htmlspecialchars($banner4); ?>" alt="Banner 4">
+        <img src="<?php echo htmlspecialchars($banner4); ?>" alt="<?php echo htmlspecialchars(getSiteBannerAltText($pdo, 4, $banner4), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
     <?php endif; ?>
 </div>
@@ -226,7 +226,7 @@ include __DIR__ . '/navbar.php';
                     <div class="flex-shrink-0" style="width: 100%; max-width: 1500px; text-align: left;">
                         <img src="uploads/<?php echo htmlspecialchars($event['image']); ?>"
                              class="event-main-image"
-                             alt="Event afbeelding">
+                             alt="<?php echo htmlspecialchars(getEventImageAltText($event), ENT_QUOTES, 'UTF-8'); ?>">
                     </div>
                 <?php endif; ?>
             </div>
@@ -259,9 +259,10 @@ include __DIR__ . '/navbar.php';
                                 class="event-gallery-trigger"
                                 data-gallery-image
                                 data-full-src="uploads/<?php echo htmlspecialchars($galleryImage); ?>"
-                                aria-label="Open foto in groot formaat"
+                                aria-label="Open foto bij evenement <?php echo htmlspecialchars(strip_tags((string)$event['title']), ENT_QUOTES, 'UTF-8'); ?> in groot formaat"
+                                data-image-alt="Foto bij evenement <?php echo htmlspecialchars(strip_tags((string)$event['title']), ENT_QUOTES, 'UTF-8'); ?>"
                             >
-                                <img src="uploads/<?php echo htmlspecialchars($galleryImage); ?>" alt="Foto van het event <?php echo htmlspecialchars((string)$event['title']); ?>" class="event-gallery-image">
+                                <img src="uploads/<?php echo htmlspecialchars($galleryImage); ?>" alt="" class="event-gallery-image">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -287,7 +288,7 @@ include __DIR__ . '/navbar.php';
 
 <div id="event-lightbox" class="event-lightbox" aria-hidden="true">
     <button type="button" id="event-lightbox-close" class="event-lightbox-close" aria-label="Sluit foto">&times;</button>
-    <img id="event-lightbox-image" class="event-lightbox-image" src="" alt="Vergrote eventfoto">
+    <img id="event-lightbox-image" class="event-lightbox-image" src="" alt="">
 </div>
 
 <?php include __DIR__ . '/footer.php'; ?>
@@ -322,6 +323,7 @@ include __DIR__ . '/navbar.php';
                 const src = this.getAttribute('data-full-src') || '';
                 if (!src) return;
                 lightboxImage.setAttribute('src', src);
+                lightboxImage.setAttribute('alt', this.getAttribute('data-image-alt') || '');
                 lightbox.classList.add('is-open');
                 lightbox.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('event-lightbox-open');

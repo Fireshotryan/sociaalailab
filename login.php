@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'db.php';
+require 'helpers.php';
 require_once 'role_permissions.php';
 
 $banner1 = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'banner1'")->fetchColumn() ?: 'images/banner_website_01.jpg';

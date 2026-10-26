@@ -3,6 +3,10 @@
 .env.local
 .env.*.local
 
+# Local database, development tools, and generated artifacts
+/.local/
+/db.local.php
+
 # IDE
 .vscode/
 .idea/

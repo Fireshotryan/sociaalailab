@@ -293,16 +293,6 @@ include __DIR__ . '/navbar.php';
 <?php include __DIR__ . '/footer.php'; ?>
 
 <script>
-    (function() {
-        const mobileToggle = document.getElementById('mobile-menu-toggle');
-        const menu = document.getElementById('nav-menu');
-        if (!mobileToggle || !menu) return;
-
-        mobileToggle.addEventListener('click', function () {
-            menu.classList.toggle('show');
-        });
-    })();
-
     const banners = document.querySelectorAll('.banner');
     let current = 0;
 

@@ -5,7 +5,7 @@ if (!isset($navPrefix)) {
 ?>
 <nav class="navbar onest-font">
     <div class="nav-container">
-        <button id="mobile-menu-toggle" class="hamburger" aria-label="Toggle navigation">
+        <button type="button" id="mobile-menu-toggle" class="hamburger" aria-label="Toggle navigation" aria-controls="nav-menu" aria-expanded="false">
             &#9776;
         </button>
 
@@ -16,8 +16,8 @@ if (!isset($navPrefix)) {
 			<li><a href="<?php echo htmlspecialchars($navPrefix); ?>over.php">Voor wie?</a></li>
 
             <li class="dropdown">
-                <button class="dropbtn">Wat doen we?<span class="dropdown-caret" aria-hidden="true"></span></button>
-                <ul class="dropdown-content">
+                <button type="button" class="dropbtn" aria-controls="program-dropdown" aria-expanded="false">Wat doen we?<span class="dropdown-caret" aria-hidden="true"></span></button>
+                <ul id="program-dropdown" class="dropdown-content">
                     <li><a href="<?php echo htmlspecialchars($navPrefix); ?>programma/kennis.php">Kennis & vaardigheden</a></li>
                     <li><a href="<?php echo htmlspecialchars($navPrefix); ?>programma/actie.php">Actie, onderzoek & ontwerp</a></li>
                     <li><a href="<?php echo htmlspecialchars($navPrefix); ?>programma/faciliteit.php">Faciliteit van het Lab</a></li>
@@ -26,8 +26,8 @@ if (!isset($navPrefix)) {
 
             <li><a href="<?php echo htmlspecialchars($navPrefix); ?>verantwoord-ai.php">Verantwoorde AI</a></li>
             <li class="dropdown">
-                <button class="dropbtn">Wie zijn we?<span class="dropdown-caret" aria-hidden="true"></span></button>
-                <ul class="dropdown-content">
+                <button type="button" class="dropbtn" aria-controls="about-dropdown" aria-expanded="false">Wie zijn we?<span class="dropdown-caret" aria-hidden="true"></span></button>
+                <ul id="about-dropdown" class="dropdown-content">
                     <li><a href="<?php echo htmlspecialchars($navPrefix); ?>wie-zijn-we.php">Overzicht</a></li>
                     <li><a href="<?php echo htmlspecialchars($navPrefix); ?>ons-team.php">Ons team</a></li>
                 </ul>
@@ -41,38 +41,81 @@ if (!isset($navPrefix)) {
 </nav>
 
 <script>
-    const toggle = document.getElementById('mobile-menu-toggle');
-    const menu = document.getElementById('nav-menu');
+    (function() {
+        const toggle = document.getElementById('mobile-menu-toggle');
+        const menu = document.getElementById('nav-menu');
+        if (!toggle || !menu) return;
 
-    toggle.addEventListener('click', () => {
-        menu.classList.toggle('show');
-    });
+        const dropdownButtons = Array.from(menu.querySelectorAll('.dropdown .dropbtn'));
 
-    document.addEventListener('click', (e) => {
-        if (!menu.contains(e.target) && !toggle.contains(e.target)) {
-            menu.classList.remove('show');
+        function closeDropdown(button, restoreFocus) {
+            const content = document.getElementById(button.getAttribute('aria-controls'));
+            button.setAttribute('aria-expanded', 'false');
+            button.classList.remove('open');
+            if (content) content.classList.remove('show');
+            if (restoreFocus) button.focus();
         }
-    });
 
-    // Mobile dropdown toggle
-    document.querySelectorAll('.dropdown .dropbtn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const dropdown = btn.closest('.dropdown');
-            const content = dropdown.querySelector('.dropdown-content');
-            const isOpen = content.style.display === 'block';
-            // Close all dropdowns first
-            document.querySelectorAll('.dropdown-content').forEach(function(d) {
-                d.style.display = 'none';
+        function closeAllDropdowns() {
+            dropdownButtons.forEach(function(button) {
+                closeDropdown(button, false);
             });
-            document.querySelectorAll('.dropbtn').forEach(function(b) {
-                b.classList.remove('open');
-            });
-            // Toggle current
-            if (!isOpen) {
-                content.style.display = 'block';
-                btn.classList.add('open');
+        }
+
+        function openMenu() {
+            menu.classList.add('show');
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeMenu(restoreFocus) {
+            menu.classList.remove('show');
+            toggle.setAttribute('aria-expanded', 'false');
+            closeAllDropdowns();
+            if (restoreFocus) toggle.focus();
+        }
+
+        toggle.addEventListener('click', function() {
+            if (toggle.getAttribute('aria-expanded') === 'true') {
+                closeMenu(false);
+            } else {
+                openMenu();
             }
         });
-    });
+
+        dropdownButtons.forEach(function(button) {
+            const content = document.getElementById(button.getAttribute('aria-controls'));
+            if (content) content.classList.remove('show');
+
+            button.addEventListener('click', function() {
+                const willOpen = button.getAttribute('aria-expanded') !== 'true';
+                closeAllDropdowns();
+                if (willOpen && content) {
+                    button.setAttribute('aria-expanded', 'true');
+                    button.classList.add('open');
+                    content.classList.add('show');
+                }
+            });
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!menu.contains(event.target) && !toggle.contains(event.target)) {
+                closeMenu(false);
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key !== 'Escape') return;
+
+            const openDropdown = dropdownButtons.find(function(button) {
+                return button.getAttribute('aria-expanded') === 'true';
+            });
+            if (openDropdown) {
+                event.preventDefault();
+                closeDropdown(openDropdown, true);
+            } else if (toggle.getAttribute('aria-expanded') === 'true') {
+                event.preventDefault();
+                closeMenu(true);
+            }
+        });
+    })();
 </script>

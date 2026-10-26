@@ -248,17 +248,6 @@ foreach ($events as $event):
         });
     })();
 
-    (function () {
-        const mobileToggle = document.getElementById('mobile-menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        if (!mobileToggle || !mobileMenu) return;
-
-        mobileToggle.addEventListener('click', function () {
-            mobileMenu.classList.toggle('hidden');
-        });
-    })();
-
 const banners = document.querySelectorAll('.banner');
 let current = 0;
 

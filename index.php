@@ -616,18 +616,6 @@ include __DIR__ . '/navbar.php';
         });
     })();
 
-    (function () {
-        const mobileToggle = document.getElementById('mobile-menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        if (!mobileToggle || !mobileMenu) return;
-
-        mobileToggle.addEventListener('click', function () {
-            const isHidden = mobileMenu.classList.toggle('hidden');
-            mobileMenu.classList.toggle('open', !isHidden);
-            mobileToggle.setAttribute('aria-expanded', (!isHidden).toString());
-        });
-    })();
 
     (function () {
         const modal = document.getElementById('festival-promo-modal');

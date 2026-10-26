@@ -766,9 +766,9 @@ $daysWithStaff = array_keys($staffByDate);
                 $nextMonth = ($currentMonth % 12) + 1;
                 $nextYear = $currentMonth == 12 ? $currentYear + 1 : $currentYear;
                 ?>
-                <a href="?month=<?= $prevMonth ?>&year=<?= $prevYear ?>" class="btn-nav"><i class="fa fa-chevron-left"></i></a>
+                <a href="?month=<?= $prevMonth ?>&year=<?= $prevYear ?>" class="btn-nav" aria-label="Vorige maand"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
                 <a href="?month=<?= $currentMonth ?>&year=<?= $currentYear ?>" class="btn-nav"><?= date('F', mktime(0, 0, 0, $currentMonth, 1, $currentYear)) ?></a>
-                <a href="?month=<?= $nextMonth ?>&year=<?= $nextYear ?>" class="btn-nav"><i class="fa fa-chevron-right"></i></a>
+                <a href="?month=<?= $nextMonth ?>&year=<?= $nextYear ?>" class="btn-nav" aria-label="Volgende maand"><i class="fa fa-chevron-right" aria-hidden="true"></i></a>
             </div>
         </div>
 
@@ -905,42 +905,50 @@ $daysWithStaff = array_keys($staffByDate);
         <?php endif; ?>
 
         <form method="POST" id="bookingForm">
-            <input type="text" name="booking_title" id="booking_title" placeholder="Titel/naam van de booking (bijv: Team Meeting, Workshop)" required>
-            
-            <input type="date" name="booking_date" id="booking_date" required>
+            <div class="form-field">
+                <label class="form-field-label" for="booking_title">Titel van de booking</label>
+                <input type="text" name="booking_title" id="booking_title" placeholder="Bijv. teamoverleg of workshop" required>
+            </div>
+
+            <div class="form-field">
+                <label class="form-field-label" for="booking_date">Boekingsdatum</label>
+                <input type="date" name="booking_date" id="booking_date" required>
+            </div>
 
             <div style="margin-bottom: 1.2rem;">
-                <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: #00811F;">Selecteer locatie(s):</label>
-                <div class="location-buttons">
-                    <?php foreach ($locations as $l): ?>
-                        <label class="location-button" style="cursor: pointer;">
-                            <input type="checkbox" name="location_ids[]" value="<?= $l['id'] ?>" onchange="toggleLocationDescription(); toggleTableSelection()">
-                            <span style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #f9fafb; border: 2px solid #dfe8f3; border-radius: 10px; font-weight: 500; color: #333; transition: all 0.3s ease;">
-                                <div style="width: 12px; height: 12px; border-radius: 3px; border: 2px solid #dfe8f3; background: white;"></div>
-                                <?= htmlspecialchars($l['name']) ?>
-                            </span>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
+                <fieldset class="form-fieldset">
+                    <legend class="form-fieldset-legend">Selecteer locatie(s)</legend>
+                    <div class="location-buttons">
+                        <?php foreach ($locations as $l): ?>
+                            <label class="location-button" for="location-<?= (int)$l['id'] ?>" style="cursor: pointer;">
+                                <input type="checkbox" id="location-<?= (int)$l['id'] ?>" name="location_ids[]" value="<?= $l['id'] ?>" onchange="toggleLocationDescription(); toggleTableSelection()">
+                                <span style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #f9fafb; border: 2px solid #dfe8f3; border-radius: 10px; font-weight: 500; color: #333; transition: all 0.3s ease;">
+                                    <span style="width: 12px; height: 12px; border-radius: 3px; border: 2px solid #dfe8f3; background: white;"></span>
+                                    <?= htmlspecialchars($l['name']) ?>
+                                </span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                </fieldset>
             </div>
 
             <!-- Tafelselectie voor Sociaal AI Lab Hillevliet -->
             <div id="table_selection" style="display:none; margin-bottom: 1.2rem; padding: 1rem; background: #f9fafb; border-radius: 10px; border: 2px solid #dfe8f3;">
-                <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: #00811F;">Selecteer tafel(s) in Sociaal AI Lab Hillevliet:</label>
+                <p class="form-fieldset-legend" style="margin-bottom: 0.75rem;">Selecteer tafel(s) in Sociaal AI Lab Hillevliet</p>
                 
                 <fieldset style="margin-bottom: 1rem; padding: 0.75rem; border: 1px solid #dfe8f3; border-radius: 8px; background: white;">
                     <legend style="font-weight: 600; color: #333; padding: 0 0.5rem;">Grote tafels</legend>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="tables[]" value="gt1" style="cursor: pointer;">
+                        <label for="table-gt1" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="table-gt1" name="tables[]" value="gt1" style="cursor: pointer;">
                             <span>Grote tafel 1</span>
                         </label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="tables[]" value="gt2" style="cursor: pointer;">
+                        <label for="table-gt2" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="table-gt2" name="tables[]" value="gt2" style="cursor: pointer;">
                             <span>Grote tafel 2</span>
                         </label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="tables[]" value="gt3" style="cursor: pointer;">
+                        <label for="table-gt3" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="table-gt3" name="tables[]" value="gt3" style="cursor: pointer;">
                             <span>Grote tafel 3</span>
                         </label>
                     </div>
@@ -949,42 +957,59 @@ $daysWithStaff = array_keys($staffByDate);
                 <fieldset style="padding: 0.75rem; border: 1px solid #dfe8f3; border-radius: 8px; background: white;">
                     <legend style="font-weight: 600; color: #333; padding: 0 0.5rem;">Kleine tafels</legend>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="tables[]" value="kt1" style="cursor: pointer;">
+                        <label for="table-kt1" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="table-kt1" name="tables[]" value="kt1" style="cursor: pointer;">
                             <span>Kleine tafel 1</span>
                         </label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="tables[]" value="kt2" style="cursor: pointer;">
+                        <label for="table-kt2" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="table-kt2" name="tables[]" value="kt2" style="cursor: pointer;">
                             <span>Kleine tafel 2</span>
                         </label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="tables[]" value="kt3" style="cursor: pointer;">
+                        <label for="table-kt3" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="table-kt3" name="tables[]" value="kt3" style="cursor: pointer;">
                             <span>Kleine tafel 3</span>
                         </label>
                     </div>
                 </fieldset>
             </div>
 
-            <input type="text" name="location_description" id="location_description" placeholder="Waar/wat is de externe locatie?" style="display:none;">
-
-            <div class="row">
-                <input type="time" name="start_time" id="start_time" required>
-                <input type="time" name="end_time" id="end_time" required>
+            <div class="form-field" id="location_description_field" style="display:none;">
+                <label class="form-field-label" for="location_description">Beschrijving externe locatie</label>
+                <input type="text" name="location_description" id="location_description" placeholder="Bijv. adres of naam van de locatie">
             </div>
 
-            <textarea name="staff_present" placeholder="Wie is/zijn er present bij deze booking?" style="resize: vertical; min-height: 60px;"></textarea>
+            <div class="row">
+                <div class="form-field">
+                    <label class="form-field-label" for="start_time">Begintijd</label>
+                    <input type="time" name="start_time" id="start_time" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-field-label" for="end_time">Eindtijd</label>
+                    <input type="time" name="end_time" id="end_time" required>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label class="form-field-label" for="staff_present">Aanwezige medewerkers / notities</label>
+                <textarea id="staff_present" name="staff_present" placeholder="Wie is/zijn er aanwezig bij deze booking?" style="resize: vertical; min-height: 60px;"></textarea>
+            </div>
 
             <div style="margin-bottom: 1.2rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #00811F;">Hardware toevoegen:</label>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <select id="hardware_select" style="flex: 1;">
-                        <option value="">-- Kies hardware --</option>
-                        <?php foreach ($hardware as $h): ?>
-                            <option value="<?= $h['id'] ?>" data-max="<?= $h['quantity'] ?>"><?= htmlspecialchars($h['name']) ?> (max: <?= $h['quantity'] ?>)</option>
-                        <?php endforeach; ?>
-                    </select>
-                    <input type="number" id="hardware_qty" min="1" step="1" value="1" style="width: 80px;">
-                    <button type="button" class="btn" onclick="addHardware()" style="width: auto; padding: 0.85rem 1.5rem;">Voeg toe</button>
+                <div class="hardware-controls">
+                    <div class="form-field hardware-choice">
+                        <label class="form-field-label" for="hardware_select">Apparatuur</label>
+                        <select id="hardware_select" style="flex: 1;">
+                            <option value="">-- Kies hardware --</option>
+                            <?php foreach ($hardware as $h): ?>
+                                <option value="<?= $h['id'] ?>" data-max="<?= $h['quantity'] ?>"><?= htmlspecialchars($h['name']) ?> (max: <?= $h['quantity'] ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-field hardware-quantity">
+                        <label class="form-field-label" for="hardware_qty">Aantal</label>
+                        <input type="number" id="hardware_qty" min="1" step="1" value="1">
+                    </div>
+                    <button type="button" class="btn hardware-add-button" onclick="addHardware()">Voeg toe</button>
                 </div>
                 
                 <div id="selected_hardware" style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
@@ -1005,9 +1030,9 @@ $daysWithStaff = array_keys($staffByDate);
                         <div style="flex:1;">
                             <div style="font-weight:700; margin-bottom:0.5rem;">Event Responsibility</div>
                             <div style="font-size:0.95rem; color:#374151; margin-bottom:0.75rem;">The person submitting this booking is considered the primary organizer and is fully responsible for the event. By continuing, the organizer confirms that all provided information is accurate and accepts responsibility for guests, venue rules, damages, additional costs, and compliance with all applicable laws and regulations.</div>
-                            <label style="display:flex; align-items:center; gap:0.5rem; font-weight:600; color:#374151;">
+                            <label for="event_responsibility" style="display:flex; align-items:center; gap:0.5rem; font-weight:600; color:#374151;">
                                 <input type="checkbox" id="event_responsibility" name="event_responsibility" value="1" required style="width:18px; height:18px;">
-                                <span style="font-weight:600;">I confirm that I am the organizer (or authorized to book on behalf of the organizer) and accept full responsibility for this event, including compliance with the venue's terms and conditions.</span>
+                                <span style="font-weight:600;">Ik bevestig dat ik de organisator ben (of bevoegd ben om namens de organisator te boeken) en de volledige verantwoordelijkheid voor dit evenement accepteer, inclusief naleving van de voorwaarden van de locatie.</span>
                             </label>
                             <div id="responsibilityError" style="color:#b91c1c; font-weight:600; margin-top:0.5rem; display:none;">You must accept responsibility for the event before submitting your booking.</div>
                         </div>
@@ -1065,17 +1090,18 @@ function checkIfPastDate(dateStr) {
 // Toggle location description field based on whether extern (999) is selected
 function toggleLocationDescription() {
      const checkboxes = document.querySelectorAll('input[name="location_ids[]"]');
-     const descriptionField = document.getElementById('location_description');
+    const descriptionField = document.getElementById('location_description');
+    const descriptionFieldWrapper = document.getElementById('location_description_field');
      let externSelected = false;
      checkboxes.forEach(cb => {
          if (cb.checked && cb.value === '999') externSelected = true;
      });
 
      if (externSelected) {
-         descriptionField.style.display = 'block';
+         descriptionFieldWrapper.style.display = 'block';
          descriptionField.required = true;
      } else {
-         descriptionField.style.display = 'none';
+         descriptionFieldWrapper.style.display = 'none';
          descriptionField.required = false;
          descriptionField.value = '';
      }
@@ -1245,6 +1271,8 @@ function updateHardwareDisplay() {
             <span style="background: #00811F; color: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">${hw.qty}x</span>
             <button type="button" onclick="removeHardware('${hwId}')" style="background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 1.2rem; padding: 0;">×</button>
         `;
+        const removeButton = chip.querySelector('button');
+        removeButton.setAttribute('aria-label', 'Verwijder ' + hw.name);
         container.appendChild(chip);
     }
     
@@ -1443,29 +1471,41 @@ document.addEventListener('keydown', function(e) {
     <form method="POST">
         <input type="hidden" name="staff_location_id" value="1">
         
-            <div class="multi-select" id="staffMultiSelect">
-                <button type="button" id="staffMultiSelectTrigger" class="multi-select-trigger" aria-expanded="false" aria-controls="staffOptions" onclick="toggleStaffDropdown()">
+            <div class="form-field">
+                <label class="form-field-label" for="staffMultiSelectTrigger">Personeelsleden</label>
+                <div class="multi-select" id="staffMultiSelect">
+                    <button type="button" id="staffMultiSelectTrigger" class="multi-select-trigger" aria-expanded="false" aria-controls="staffOptions" onclick="toggleStaffDropdown()">
                     <span class="multi-select-tags" id="staffTags">
                         <span class="placeholder">Selecteer personeelsleden</span>
                     </span>
                     <span class="dropdown-arrow">&#9660;</span>
-                </button>
-                <div class="multi-select-options" id="staffOptions" hidden>
-                    <?php foreach ($allStaffNameList as $name): ?>
-                        <label class="multi-option">
-                            <input type="checkbox" name="staff_names[]" value="<?= htmlspecialchars($name) ?>" onchange="updateStaffTags()">
+                    </button>
+                    <div class="multi-select-options" id="staffOptions" hidden>
+                    <?php foreach ($allStaffNameList as $staffIndex => $name): ?>
+                        <label class="multi-option" for="staff-name-<?= (int)$staffIndex ?>">
+                            <input type="checkbox" id="staff-name-<?= (int)$staffIndex ?>" name="staff_names[]" value="<?= htmlspecialchars($name) ?>" onchange="updateStaffTags()">
                             <span><?= htmlspecialchars($name) ?></span>
                         </label>
                     <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
         
         <div class="row">
-            <input type="time" name="staff_start_time" id="staff_start_time" placeholder="Start tijd (optioneel)">
-            <input type="time" name="staff_end_time" id="staff_end_time" placeholder="Eind tijd (optioneel)">
+            <div class="form-field">
+                <label class="form-field-label" for="staff_start_time">Begintijd (optioneel)</label>
+                <input type="time" name="staff_start_time" id="staff_start_time">
+            </div>
+            <div class="form-field">
+                <label class="form-field-label" for="staff_end_time">Eindtijd (optioneel)</label>
+                <input type="time" name="staff_end_time" id="staff_end_time">
+            </div>
         </div>
         
-        <input type="date" name="staff_dates" required>
+        <div class="form-field">
+            <label class="form-field-label" for="staff_dates">Datum van aanwezigheid</label>
+            <input type="date" name="staff_dates" id="staff_dates" required>
+        </div>
         
         <small style="color: #999; margin: -0.6rem 0 0 0; font-size: 0.85rem;">Kleur wordt automatisch toegewezen!</small>
         
